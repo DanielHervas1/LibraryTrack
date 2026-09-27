@@ -2,28 +2,40 @@ import "server-only";
 
 import { z } from "zod";
 
-import type { EntryStatus, Provider, SortOption } from "@/lib/constants";
+import type { EntryStatus, MediaType, Provider, SortOption } from "@/lib/constants";
 import { createClient } from "@/lib/db/server";
 import type { Tables } from "@/types/database";
 
 export type Entry = Tables<"entries">;
+const CARD_FIELDS =
+  "id, title, cover_url, media_type, status, score, release_year, current_season, current_episode, total_episodes, current_page, total_pages" as const;
+
 export type EntryCardData = Pick<
   Entry,
-  "id" | "title" | "cover_url" | "media_type" | "status" | "score" | "release_year"
+  | "id"
+  | "title"
+  | "cover_url"
+  | "media_type"
+  | "status"
+  | "score"
+  | "release_year"
+  | "current_season"
+  | "current_episode"
+  | "total_episodes"
+  | "current_page"
+  | "total_pages"
 >;
 
 // RLS ya limita todo al usuario de la sesión; el filtro por user_id es defensa extra.
 
 export async function listEntries(
   userId: string,
-  { status, sort }: { status?: EntryStatus; sort: SortOption },
+  { mediaType, status, sort }: { mediaType?: MediaType; status?: EntryStatus; sort: SortOption },
 ): Promise<EntryCardData[]> {
   const supabase = await createClient();
-  let query = supabase
-    .from("entries")
-    .select("id, title, cover_url, media_type, status, score, release_year")
-    .eq("user_id", userId);
+  let query = supabase.from("entries").select(CARD_FIELDS).eq("user_id", userId);
 
+  if (mediaType) query = query.eq("media_type", mediaType);
   if (status) query = query.eq("status", status);
 
   if (sort === "score") {

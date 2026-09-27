@@ -15,6 +15,21 @@ export const MEDIA_TYPE_LABELS: Record<MediaType, string> = {
   book: "Libro",
 };
 
+export const MEDIA_TYPE_PLURAL_LABELS: Record<MediaType, string> = {
+  movie: "Películas",
+  tv: "Series",
+  anime: "Anime",
+  book: "Libros",
+};
+
+/** Zona horaria del usuario, para fechas automáticas ("hoy") calculadas en el servidor. */
+export const APP_TIME_ZONE = "Europe/Madrid";
+
+/** Fecha de hoy como "YYYY-MM-DD" en la zona horaria de la app. */
+export function todayISO(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: APP_TIME_ZONE }).format(now);
+}
+
 const STATUS_LABELS: Record<EntryStatus, string> = {
   planned: "Por ver",
   in_progress: "Viendo",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dedupeGenres, parseEntryForm } from "./entry";
+import { dedupeGenres, parseEntryForm, parseManualEntryForm, parseProgressForm } from "./entry";
 
 function form(values: Record<string, string | string[]>) {
   const data = new FormData();
@@ -66,5 +66,71 @@ describe("parseEntryForm", () => {
 describe("dedupeGenres", () => {
   it("quita duplicados sin distinguir mayúsculas", () => {
     expect(dedupeGenres(["Drama", "drama", "Acción", "DRAMA"])).toEqual(["Drama", "Acción"]);
+  });
+});
+
+describe("campos opcionales de la ficha", () => {
+  it("solo incluye duración y autores si el formulario los envía", () => {
+    const without = parseEntryForm(form(base));
+    expect(without.data?.runtime_minutes).toBeUndefined();
+    expect(without.data?.authors).toBeUndefined();
+
+    const withFields = parseEntryForm(
+      form({ ...base, runtime_minutes: "120", authors: "A, B, a" }),
+    );
+    expect(withFields.data?.runtime_minutes).toBe(120);
+    expect(withFields.data?.authors).toEqual(["A", "B"]);
+  });
+});
+
+describe("parseManualEntryForm", () => {
+  it("crea una entrada mínima con estado por defecto", () => {
+    const result = parseManualEntryForm(form({ media_type: "book", title: "Mi libro" }));
+    expect(result.success).toBe(true);
+    expect(result.data).toMatchObject({ media_type: "book", title: "Mi libro", status: "planned" });
+  });
+
+  it("anula los campos que no aplican al tipo", () => {
+    const result = parseManualEntryForm(
+      form({
+        media_type: "movie",
+        title: "Peli",
+        runtime_minutes: "95",
+        total_pages: "300",
+        total_episodes: "10",
+        authors: "Alguien",
+      }),
+    );
+    expect(result.data).toMatchObject({
+      runtime_minutes: 95,
+      total_pages: null,
+      total_episodes: null,
+      authors: [],
+    });
+  });
+
+  it("rechaza tipos desconocidos y títulos vacíos", () => {
+    expect(parseManualEntryForm(form({ media_type: "podcast", title: "X" })).success).toBe(false);
+    expect(parseManualEntryForm(form({ media_type: "book", title: " " })).success).toBe(false);
+  });
+});
+
+describe("parseProgressForm", () => {
+  it("solo devuelve los campos enviados", () => {
+    const result = parseProgressForm(form({ current_page: "120", total_pages: "300" }));
+    expect(result.data).toEqual({ current_page: 120, total_pages: 300 });
+  });
+
+  it("vacío significa null", () => {
+    expect(parseProgressForm(form({ total_episodes: "" })).data).toEqual({ total_episodes: null });
+  });
+
+  it("no permite superar el total", () => {
+    expect(parseProgressForm(form({ current_page: "301", total_pages: "300" })).success).toBe(
+      false,
+    );
+    expect(parseProgressForm(form({ current_episode: "13", total_episodes: "12" })).success).toBe(
+      false,
+    );
   });
 });

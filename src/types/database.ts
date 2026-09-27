@@ -131,7 +131,7 @@ export type Database = {
         | "completed"
         | "dropped"
       media_type: "movie" | "tv" | "anime" | "book"
-      provider: "tmdb" | "anilist" | "google_books" | "manual"
+      provider: "tmdb" | "anilist" | "google_books" | "manual" | "open_library"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -267,7 +267,7 @@ export const Constants = {
         "dropped",
       ],
       media_type: ["movie", "tv", "anime", "book"],
-      provider: ["tmdb", "anilist", "google_books", "manual"],
+      provider: ["tmdb", "anilist", "google_books", "manual", "open_library"],
     },
   },
 } as const

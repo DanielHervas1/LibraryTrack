@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { coverPathFromUrl, isOwnCoverUrl, userCoverUrlPrefix } from "./covers";
+import {
+  coverPathFromUrl,
+  coverStoragePath,
+  isOwnCoverUrl,
+  userCoverUrlPrefix,
+  validateCoverFile,
+} from "./covers";
 
 const SUPABASE_URL = "https://abc.supabase.co";
 const USER = "11111111-1111-4111-8111-111111111111";
@@ -40,5 +46,22 @@ describe("isOwnCoverUrl", () => {
     expect(isOwnCoverUrl(own, SUPABASE_URL, USER)).toBe(true);
     expect(isOwnCoverUrl(own.replace(USER, "otro-usuario"), SUPABASE_URL, USER)).toBe(false);
     expect(isOwnCoverUrl("https://malicioso.com/x.jpg", SUPABASE_URL, USER)).toBe(false);
+  });
+});
+
+describe("validateCoverFile", () => {
+  it("acepta imágenes válidas", () => {
+    expect(validateCoverFile({ type: "image/webp", size: 1000 })).toBeNull();
+  });
+
+  it("rechaza formatos y tamaños no válidos", () => {
+    expect(validateCoverFile({ type: "image/gif", size: 1000 })).toMatch(/Formato/);
+    expect(validateCoverFile({ type: "image/png", size: 6 * 1024 * 1024 })).toMatch(/5 MB/);
+  });
+});
+
+describe("coverStoragePath", () => {
+  it("usa la carpeta del usuario y la entrada", () => {
+    expect(coverStoragePath(USER, "entry", "image/png", "abc")).toBe(`${USER}/entry/abc.png`);
   });
 });

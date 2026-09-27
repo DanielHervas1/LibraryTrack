@@ -51,17 +51,18 @@ El contexto técnico, el modelo de datos y las convenciones están en [CLAUDE.md
 
 **Objetivo:** cubrir las cuatro librerías (películas, series, anime y libros) y la entrada manual.
 
-- [ ] Series vía TMDB (`type=tv`): temporadas, episodios, duración por episodio
-- [ ] Anime vía AniList (GraphQL, sin key): episodios, duración, géneros
-- [ ] Libros vía Google Books: número de páginas, autores; forzar `https` en las miniaturas
-- [ ] Interfaz común `MediaProvider` y registro de proveedores en `lib/providers/index.ts`
-- [ ] Selector de tipo en el buscador y pestañas o filtro por tipo en el catálogo
-- [ ] Progreso: temporada y episodio (series), episodio (anime), página (libros), con botones rápidos "+1 episodio" / "+N páginas"
-- [ ] Al completar el último episodio o página → proponer marcar como "Completado"
-- [ ] Etiquetas de estado según el tipo ("Viendo" / "Leyendo")
-- [ ] **Portada manual como alternativa en cualquier tipo**: si la API no devuelve imagen o el usuario quiere otra, puede subir una portada propia (Supabase Storage); esto aplica tanto a entradas con proveedor API como a las creadas a mano
-- [ ] **Entrada manual** cuando algo no está en la API: formulario completo con subida obligatoria de portada a Supabase Storage
-- [ ] Añadir los dominios de imagen de AniList y Google Books a `remotePatterns`
+- [x] Series vía TMDB (`type=tv`): temporadas, episodios, duración por episodio
+- [x] Anime vía AniList (GraphQL, sin key): episodios, duración, géneros
+- [x] Libros vía Google Books: número de páginas, autores; forzar `https` en las miniaturas
+- [x] Open Library como respaldo para libros cuando no hay `GOOGLE_BOOKS_API_KEY` (sin key, la cuota anónima de Google Books está agotada)
+- [x] Interfaz común `MediaProvider` y registro de proveedores en `lib/providers/index.ts`
+- [x] Selector de tipo en el buscador y pestañas o filtro por tipo en el catálogo
+- [x] Progreso: temporada y episodio (series), episodio (anime), página (libros), con botones rápidos "+1 episodio" / "+N páginas"
+- [x] Al completar el último episodio o página → proponer marcar como "Completado"
+- [x] Etiquetas de estado según el tipo ("Viendo" / "Leyendo")
+- [x] **Portada manual como alternativa en cualquier tipo**: si la API no devuelve imagen o el usuario quiere otra, puede subir una portada propia (Supabase Storage); esto aplica tanto a entradas con proveedor API como a las creadas a mano
+- [x] **Entrada manual** cuando algo no está en la API: formulario completo con subida opcional de portada a Supabase Storage
+- [x] Añadir los dominios de imagen de AniList, Google Books y Open Library a `remotePatterns`
 
 **Hecho cuando:** puedo añadir cualquier cosa que consuma, esté en una API o no.
 

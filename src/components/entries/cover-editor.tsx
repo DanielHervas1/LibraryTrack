@@ -2,15 +2,9 @@
 
 import { useRef, useState, useTransition } from "react";
 
-import { resetCover, setCustomCover } from "@/lib/actions/entries";
-import { COVER_BUCKET, COVER_MAX_BYTES, COVER_MIME_TYPES } from "@/lib/constants";
-import { createClient } from "@/lib/db/client";
-
-const EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
+import { resetCover } from "@/lib/actions/entries";
+import { COVER_MIME_TYPES } from "@/lib/constants";
+import { uploadCover } from "@/lib/storage/upload-cover";
 
 type CoverEditorProps = {
   entryId: string;
@@ -20,10 +14,6 @@ type CoverEditorProps = {
   hasProviderCover: boolean;
 };
 
-/**
- * Sube la imagen directamente a Supabase Storage (covers/<user>/<entry>/) con la sesión
- * del usuario; el servidor solo valida la URL resultante y la guarda.
- */
 export function CoverEditor({ entryId, userId, isCustom, hasProviderCover }: CoverEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,33 +22,8 @@ export function CoverEditor({ entryId, userId, isCustom, hasProviderCover }: Cov
   function handleFile(file: File | undefined) {
     setError(null);
     if (!file) return;
-    if (!COVER_MIME_TYPES.includes(file.type)) {
-      setError("Formato no válido. Usa JPG, PNG o WebP.");
-      return;
-    }
-    if (file.size > COVER_MAX_BYTES) {
-      setError("La imagen supera 5 MB.");
-      return;
-    }
-
     startTransition(async () => {
-      const supabase = createClient();
-      const path = `${userId}/${entryId}/${crypto.randomUUID()}.${EXTENSIONS[file.type]}`;
-      const upload = await supabase.storage
-        .from(COVER_BUCKET)
-        .upload(path, file, { contentType: file.type, cacheControl: "31536000" });
-      if (upload.error) {
-        console.error(upload.error);
-        setError("No se pudo subir la imagen.");
-        return;
-      }
-
-      const { data } = supabase.storage.from(COVER_BUCKET).getPublicUrl(path);
-      const result = await setCustomCover(entryId, data.publicUrl);
-      if (result.status === "error") {
-        await supabase.storage.from(COVER_BUCKET).remove([path]);
-        setError(result.message);
-      }
+      setError(await uploadCover(entryId, userId, file));
     });
   }
 

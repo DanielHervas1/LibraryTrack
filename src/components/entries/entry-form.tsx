@@ -2,23 +2,30 @@
 
 import { useActionState } from "react";
 
+import { inputClass, primaryButtonClass } from "@/components/ui/styles";
 import { updateEntry, type ActionState } from "@/lib/actions/entries";
-import { STATUSES, statusLabel } from "@/lib/constants";
+import { STATUSES, statusLabel, type EntryStatus } from "@/lib/constants";
 import type { Entry } from "@/lib/db/entries";
+import { useSyncedState } from "@/lib/hooks/use-synced-state";
 
 import { GenreEditor } from "./genre-editor";
 import { ScoreInput } from "./score-input";
 
 const initialState: ActionState = { status: "idle" };
 
-const inputClass =
-  "w-full rounded-lg border border-border bg-background px-3 py-2 outline-none focus:ring-2 focus:ring-accent";
+const AUTHORS_LABEL = { book: "Autores", tv: "Creadores", anime: "Estudio" } as const;
 
 export function EntryForm({ entry }: { entry: Entry }) {
   const [state, formAction, pending] = useActionState(
     updateEntry.bind(null, entry.id),
     initialState,
   );
+
+  // Otras acciones (progreso, "marcar completado") pueden cambiar estos campos en el
+  // servidor; se sincronizan para no sobrescribirlos con valores viejos al guardar.
+  const [status, setStatus] = useSyncedState<EntryStatus>(entry.status);
+  const [startedAt, setStartedAt] = useSyncedState(entry.started_at ?? "");
+  const [finishedAt, setFinishedAt] = useSyncedState(entry.finished_at ?? "");
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -35,10 +42,15 @@ export function EntryForm({ entry }: { entry: Entry }) {
 
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium">Estado</span>
-        <select name="status" defaultValue={entry.status} className={inputClass}>
-          {STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {statusLabel(status, entry.media_type)}
+        <select
+          name="status"
+          value={status}
+          onChange={(event) => setStatus(event.target.value as EntryStatus)}
+          className={inputClass}
+        >
+          {STATUSES.map((value) => (
+            <option key={value} value={value}>
+              {statusLabel(value, entry.media_type)}
             </option>
           ))}
         </select>
@@ -52,7 +64,8 @@ export function EntryForm({ entry }: { entry: Entry }) {
           <input
             type="date"
             name="started_at"
-            defaultValue={entry.started_at ?? ""}
+            value={startedAt}
+            onChange={(event) => setStartedAt(event.target.value)}
             className={inputClass}
           />
         </label>
@@ -61,7 +74,8 @@ export function EntryForm({ entry }: { entry: Entry }) {
           <input
             type="date"
             name="finished_at"
-            defaultValue={entry.finished_at ?? ""}
+            value={finishedAt}
+            onChange={(event) => setFinishedAt(event.target.value)}
             className={inputClass}
           />
         </label>
@@ -81,12 +95,34 @@ export function EntryForm({ entry }: { entry: Entry }) {
 
       <GenreEditor initialGenres={entry.genres} />
 
+      {entry.media_type === "movie" ? (
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium">Duración (min)</span>
+          <input
+            type="number"
+            name="runtime_minutes"
+            min={1}
+            max={2000}
+            inputMode="numeric"
+            defaultValue={entry.runtime_minutes ?? ""}
+            className={inputClass}
+          />
+        </label>
+      ) : (
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium">{AUTHORS_LABEL[entry.media_type]}</span>
+          <input
+            name="authors"
+            defaultValue={entry.authors.join(", ")}
+            placeholder="Separados por comas"
+            maxLength={1000}
+            className={inputClass}
+          />
+        </label>
+      )}
+
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-accent px-4 py-2 font-medium text-accent-foreground disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending} className={primaryButtonClass}>
           {pending ? "Guardando…" : "Guardar"}
         </button>
         <p aria-live="polite" className="text-sm">

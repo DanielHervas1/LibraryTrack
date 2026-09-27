@@ -4,7 +4,7 @@ App personal para registrar lo que consumo: **películas, series, anime y libros
 
 - Nombre del repo: `LibraryTrack`. En el brief aparece como "Watch Diary" (nombre provisional, aún sin decidir).
 - Hoja de ruta y estado actual: [PLAN.md](PLAN.md). **Antes de trabajar, mira en qué fase estamos** (casillas marcadas) y no adelantes trabajo de fases posteriores sin que se pida.
-- Estado actual: **Fase 0 hecha (salvo el despliegue en Vercel) y Fase 1 (MVP de películas) implementada.** Las casillas de PLAN.md son la fuente de verdad.
+- Estado actual: **Fases 0 (salvo el despliegue en Vercel), 1 y 2 implementadas.** Las casillas de PLAN.md son la fuente de verdad.
 - Supabase quedó confirmado como backend (27-09-2026). El resto de "Decisiones propuestas" se aplicó tal cual.
 
 @AGENTS.md
@@ -29,7 +29,7 @@ La versión instalada es más nueva que la que conoce el modelo. Ante la duda, c
 - **APIs de metadatos:**
   - Películas y series → **TMDB** (con token; ya existe la cuenta)
   - Anime → **AniList** (GraphQL, sin key para lecturas públicas)
-  - Libros → **Google Books** (funciona sin key; con key hay más cuota)
+  - Libros → **Google Books** si hay `GOOGLE_BOOKS_API_KEY`; si no, **Open Library** (sin key). Sin key, la cuota anónima de Google Books está agotada (error 429).
 - Los metadatos se **autocompletan** desde la API, pero **todo es editable a mano**, sobre todo los géneros. También se puede crear una entrada 100% manual si no aparece en la API.
 - **Estados:** Por ver · Viendo · En pausa · Completado · Abandonado.
 - **Campos por entrada:** título, portada (de la API o subida a mano), tipo, géneros, puntuación, opinión, fechas (inicio y fin), progreso, tags libres y contador de rewatches.
@@ -83,7 +83,7 @@ src/
       settings/              # exportación, token de perfil compartido, preferencias
     share/[token]/           # perfil de solo lectura, sin login, noindex
     api/
-      search/[provider]/route.ts   # proxy a TMDB / AniList / Google Books
+      search/route.ts              # ?type=&q= → el servidor elige el proveedor según el tipo
       export/route.ts              # ?format=json|csv
     manifest.ts
   components/
@@ -154,9 +154,13 @@ profiles
 - Cada proveedor implementa la interfaz común de `lib/providers/types.ts` y **normaliza** su respuesta. Los componentes nunca manejan la forma cruda de una API.
 - TMDB: usar el **Read Access Token** (v4) en la cabecera `Authorization: Bearer`. Imágenes desde `https://image.tmdb.org/t/p/<size><path>`. Pedir `language=es-ES` con fallback a inglés si falta la sinopsis.
 - AniList: `POST https://graphql.anilist.co`; límite de ~90 peticiones/minuto; preferir el título `romaji`/`english` según una preferencia del usuario.
-- Google Books: las miniaturas llegan con `http://` → reescribir a `https://`. Añadir `key=` solo si existe `GOOGLE_BOOKS_API_KEY`.
+- Google Books: las miniaturas llegan con `http://` → reescribir a `https://`. Se usa solo si existe `GOOGLE_BOOKS_API_KEY`.
+- Open Library: sin key, con `User-Agent` propio. Con `lang=es` y los campos `editions.*` devuelve el título y la portada de la edición española. Los `subject` son etiquetas sueltas: se filtran a géneros conocidos en `lib/providers/genres.ts`.
+- Géneros: se normalizan a español en `lib/providers/genres.ts` (TMDB TV devuelve algunos en inglés y combinados, como "Sci-Fi & Fantasy"; AniList solo en inglés).
+- Series: los episodios por temporada (sin la temporada 0 de especiales) se guardan en `metadata.seasons`. Así "+1 episodio" salta de temporada. El formato de `metadata` está validado en `lib/entry-metadata.ts`.
+- La lógica de progreso (siguiente episodio, porcentaje, completado) es pura y está en `lib/progress.ts`, con tests.
 - Cachear las búsquedas en el servidor (`fetch` con `next: { revalidate }`) y aplicar debounce en el cliente (~300 ms).
-- Los dominios de imagen van en `next.config` → `images.remotePatterns` (TMDB, AniList, Google Books, Supabase Storage).
+- Los dominios de imagen van en `next.config` → `images.remotePatterns` (TMDB, AniList, Google Books, Open Library, Supabase Storage).
 
 ## Variables de entorno
 

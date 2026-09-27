@@ -8,13 +8,17 @@ import { requireUser } from "@/lib/auth/session";
 import { COVER_BUCKET, MEDIA_TYPES, PROVIDERS } from "@/lib/constants";
 import { getEntry } from "@/lib/db/entries";
 import { createClient } from "@/lib/db/server";
+import { parseEntryMetadata } from "@/lib/entry-metadata";
 import { getSupabaseEnv } from "@/lib/env";
 import { getProvider } from "@/lib/providers";
 import { coverPathFromUrl, isOwnCoverUrl } from "@/lib/storage/covers";
-import { parseEntryForm } from "@/lib/validation/entry";
+import { parseEntryForm, parseManualEntryForm } from "@/lib/validation/entry";
 
 export type ActionState =
   { status: "idle" } | { status: "saved"; at: number } | { status: "error"; message: string };
+
+export type CreateEntryResult =
+  { status: "created"; id: string } | { status: "error"; message: string };
 
 const entryIdSchema = z.uuid();
 
@@ -49,7 +53,7 @@ export async function addFromProvider(formData: FormData) {
   if (!parsed.success) throw new Error("Datos no válidos.");
 
   const { provider: providerId, mediaType, externalId } = parsed.data;
-  const provider = getProvider(providerId, mediaType);
+  const provider = getProvider(providerId, mediaType, externalId);
   if (!provider) throw new Error("Proveedor no disponible para este tipo.");
 
   const supabase = await createClient();
@@ -82,8 +86,15 @@ export async function addFromProvider(formData: FormData) {
       cover_url: details.coverUrl,
       release_year: details.year,
       genres: details.genres,
+      authors: details.authors,
       runtime_minutes: details.runtimeMinutes,
-      metadata: { provider_cover_url: details.coverUrl },
+      total_episodes: details.totalEpisodes,
+      episode_minutes: details.episodeMinutes,
+      total_pages: details.totalPages,
+      metadata: {
+        provider_cover_url: details.coverUrl,
+        ...(details.seasons ? { seasons: details.seasons } : {}),
+      },
     })
     .select("id")
     .single();
@@ -99,6 +110,33 @@ export async function addFromProvider(formData: FormData) {
 
   revalidatePath("/");
   redirect(`/entry/${data.id}`);
+}
+
+/**
+ * Crea una entrada a mano. Devuelve el id (en vez de redirigir) para que el cliente
+ * pueda subir la portada a covers/<user>/<id>/ antes de abrir la ficha.
+ */
+export async function createManualEntry(formData: FormData): Promise<CreateEntryResult> {
+  const user = await requireUser();
+  const parsed = parseManualEntryForm(formData);
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Revisa los campos." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("entries")
+    .insert({ ...parsed.data, user_id: user.id, provider: "manual", external_id: null })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("createManualEntry", error);
+    return { status: "error", message: "No se pudo crear la entrada." };
+  }
+
+  revalidatePath("/");
+  return { status: "created", id: data.id };
 }
 
 export async function updateEntry(
@@ -161,10 +199,8 @@ export async function setCustomCover(id: string, url: string): Promise<ActionSta
   if (!entry) return { status: "error", message: "La entrada ya no existe." };
 
   const { url: supabaseUrl } = getSupabaseEnv();
-  if (
-    !isOwnCoverUrl(url, supabaseUrl, user.id) ||
-    !coverPathFromUrl(url, supabaseUrl)?.startsWith(`${user.id}/${id}/`)
-  ) {
+  const path = coverPathFromUrl(url, supabaseUrl);
+  if (!isOwnCoverUrl(url, supabaseUrl, user.id) || !path?.startsWith(`${user.id}/${id}/`)) {
     return { status: "error", message: "URL de portada no válida." };
   }
 
@@ -187,8 +223,7 @@ export async function resetCover(id: string): Promise<ActionState> {
   const entry = await getEntry(user.id, id);
   if (!entry) return { status: "error", message: "La entrada ya no existe." };
 
-  const metadata = entry.metadata as { provider_cover_url?: string | null } | null;
-  const providerCover = metadata?.provider_cover_url ?? null;
+  const providerCover = parseEntryMetadata(entry.metadata).provider_cover_url ?? null;
 
   const supabase = await createClient();
   const { error } = await supabase
