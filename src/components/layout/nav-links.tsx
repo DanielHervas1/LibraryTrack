@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type NavItem = { href: string; label: string; icon: React.ReactNode };
+type NavItem = { href: string; label: string; shortLabel?: string; icon: React.ReactNode };
 
 const icon = (d: string) => (
   <svg
@@ -20,7 +20,8 @@ const icon = (d: string) => (
   </svg>
 );
 
-export const NAV_ITEMS: NavItem[] = [
+/** Secciones principales: barra inferior en el móvil. */
+const PRIMARY_ITEMS: NavItem[] = [
   {
     href: "/",
     label: "Catálogo",
@@ -32,6 +33,21 @@ export const NAV_ITEMS: NavItem[] = [
     icon: icon("M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"),
   },
   { href: "/add", label: "Añadir", icon: icon("M12 5v14M5 12h14") },
+  {
+    href: "/diary",
+    label: "Diario",
+    icon: icon("M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14H4zM4 10h16M9 2v4M15 2v4"),
+  },
+  {
+    href: "/stats",
+    label: "Estadísticas",
+    shortLabel: "Stats",
+    icon: icon("M4 20V10M10 20V4M16 20v-7M22 20H2"),
+  },
+];
+
+/** Secundarias: iconos en la cabecera en el móvil. */
+const SECONDARY_ITEMS: NavItem[] = [
   {
     href: "/favorites",
     label: "Favoritos",
@@ -52,12 +68,12 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Enlaces del header (escritorio). */
+/** Enlaces del header (escritorio, desde md). */
 export function DesktopNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Principal" className="hidden items-center gap-5 sm:flex">
-      {NAV_ITEMS.map((item) => (
+    <nav aria-label="Principal" className="hidden items-center gap-5 md:flex">
+      {[...PRIMARY_ITEMS, ...SECONDARY_ITEMS].map((item) => (
         <Link
           key={item.href}
           href={item.href}
@@ -71,16 +87,37 @@ export function DesktopNav() {
   );
 }
 
+/** Iconos de Favoritos y Ajustes en la cabecera (móvil). */
+export function MobileHeaderNav() {
+  const pathname = usePathname();
+  return (
+    <nav aria-label="Secundaria" className="flex items-center gap-1 md:hidden">
+      {SECONDARY_ITEMS.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-label={item.label}
+          title={item.label}
+          aria-current={isActive(pathname, item.href) ? "page" : undefined}
+          className="flex size-10 items-center justify-center rounded-full text-muted hover:bg-surface aria-[current=page]:text-accent"
+        >
+          {item.icon}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 /** Barra inferior fija (móvil / PWA). */
 export function MobileNav() {
   const pathname = usePathname();
   return (
     <nav
       aria-label="Principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       <ul className="grid grid-cols-5">
-        {NAV_ITEMS.map((item) => (
+        {PRIMARY_ITEMS.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
@@ -88,7 +125,7 @@ export function MobileNav() {
               className="flex flex-col items-center gap-0.5 py-2 text-[11px] text-muted aria-[current=page]:text-accent"
             >
               {item.icon}
-              {item.label}
+              {item.shortLabel ?? item.label}
             </Link>
           </li>
         ))}

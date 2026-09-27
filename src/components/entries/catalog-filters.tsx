@@ -52,7 +52,10 @@ export function CatalogFilters({
 
   return (
     <div className="flex flex-col gap-3">
-      <nav aria-label="Filtrar por tipo" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <nav
+        aria-label="Filtrar por tipo"
+        className="-mx-4 no-scrollbar flex gap-2 overflow-x-auto px-4"
+      >
         <Chip active={!mediaType} href={href({ mediaType: undefined })}>
           Todo
         </Chip>
@@ -64,7 +67,10 @@ export function CatalogFilters({
       </nav>
 
       {showStatus && (
-        <nav aria-label="Filtrar por estado" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <nav
+          aria-label="Filtrar por estado"
+          className="-mx-4 no-scrollbar flex gap-2 overflow-x-auto px-4"
+        >
           <Chip active={!status} href={href({ status: undefined })}>
             Cualquier estado
           </Chip>

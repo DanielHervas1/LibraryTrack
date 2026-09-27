@@ -31,7 +31,10 @@ export default async function ListPage(props: PageProps<"/list">) {
 
       {planned.length > 0 && <RandomPicker entries={planned} />}
 
-      <nav aria-label="Filtrar por tipo" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <nav
+        aria-label="Filtrar por tipo"
+        className="-mx-4 no-scrollbar flex gap-2 overflow-x-auto px-4"
+      >
         {[undefined, ...MEDIA_TYPES].map((type) => {
           const active = mediaType === type;
           return (

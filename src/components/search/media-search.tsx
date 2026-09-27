@@ -81,7 +81,11 @@ export function MediaSearch({ initialType }: { initialType: MediaType }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="tablist" aria-label="Tipo de contenido" className="flex gap-2 overflow-x-auto">
+      <div
+        role="tablist"
+        aria-label="Tipo de contenido"
+        className="no-scrollbar flex gap-2 overflow-x-auto"
+      >
         {MEDIA_TYPES.map((value) => (
           <button
             key={value}

@@ -4,7 +4,7 @@ App personal para registrar lo que consumo: **películas, series, anime y libros
 
 - Nombre del repo: `LibraryTrack`. En el brief aparece como "Watch Diary" (nombre provisional, aún sin decidir).
 - Hoja de ruta y estado actual: [PLAN.md](PLAN.md). **Antes de trabajar, mira en qué fase estamos** (casillas marcadas) y no adelantes trabajo de fases posteriores sin que se pida.
-- Estado actual: **Fases 0 (salvo el despliegue en Vercel), 1, 2 y 3 implementadas; PWA básica de la Fase 5 hecha** (manifest, iconos, service worker); el resto de la Fase 5 (catálogo offline, perfil compartido) y toda la Fase 4 siguen pendientes. Las casillas de PLAN.md son la fuente de verdad.
+- Estado actual: **Fases 0 a 4 implementadas y desplegadas** en https://library-track.vercel.app. De la Fase 5 está hecha la PWA básica (manifest, iconos, service worker); faltan el perfil compartido y el catálogo offline. Las casillas de PLAN.md son la fuente de verdad.
 - Supabase quedó confirmado como backend (27-09-2026). El resto de "Decisiones propuestas" se aplicó tal cual.
 
 @AGENTS.md
@@ -137,7 +137,7 @@ entries
 tags (id, user_id, name, name_key generada = lower(btrim(name)); unique(user_id, name_key))
 entry_tags (entry_id, tag_id, user_id)
 
-activity_log  (creada en la Fase 3 para los rewatches; la Fase 4 añade el resto)
+activity_log  (kind progress | rewatched; detail de progress = { amount, unit: episode|page })
   id, entry_id, date, kind: started | progress | finished | rewatched, detail jsonb
 
 profiles
@@ -184,6 +184,16 @@ ALLOWED_EMAIL=                   # única cuenta autorizada a iniciar sesión
 - La lógica pura (estadísticas, exportación, normalización de APIs) va separada de la UI y tiene tests.
 - Los textos de la UI en español, centralizados en `lib/constants.ts` cuando se repiten (etiquetas de estados y tipos). Las etiquetas dependen del tipo: "Viendo" → "Leyendo" en libros.
 - Diseño **mobile-first**: la app se usará sobre todo en el móvil como PWA.
+
+## Diario y estadísticas
+
+- **Diario** (`/diary`): inicio y fin salen de `entries.started_at`/`finished_at` (no se duplican en `activity_log`). `activity_log` guarda solo los avances (lo registra `saveProgress` en `lib/actions/progress.ts` con `progressDelta`) y los rewatches. Los kinds `started`/`finished` del enum no se usan.
+- La lógica de calendario y agregación está en `lib/diary.ts`; la de estadísticas, en `lib/stats.ts`. Ambas son puras y tienen tests.
+- **Horas:** películas terminadas × duración; series y anime, episodios vistos × min/ep; libros, páginas × `profiles.minutes_per_page` (estimación, configurable en Ajustes). Los rewatches suman el total.
+- **Gráficas:** componentes HTML/CSS propios en `components/stats/charts.tsx`, de una sola serie con el color `--chart`. Ese color está validado con el script de la skill `dataviz`: `#4f46e5` en claro y `#7479f2` en oscuro (el acento `#818cf8` no pasaba la banda de luminosidad en oscuro).
+- `profiles` (una fila por usuario, creada con upsert al guardar): de momento `minutes_per_page`; la Fase 5 añade los campos del perfil compartido.
+- **Navegación:** en el móvil, barra inferior (Catálogo · Mi lista · Añadir · Diario · Stats) e iconos de Favoritos y Ajustes en la cabecera. Desde `md`, todo en la cabecera.
+- Chrome headless no baja de 500 px de ancho: para ver una vista a tamaño de móvil, mete el contenido en un contenedor `w-[390px]`.
 
 ## PWA
 

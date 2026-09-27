@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
 import { PasswordForm } from "@/components/auth/password-form";
+import { MinutesPerPageForm } from "@/components/settings/minutes-per-page-form";
 import { signOut } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth/session";
+import { getProfile } from "@/lib/db/profile";
 
 export const metadata: Metadata = {
   title: "Ajustes",
@@ -12,6 +14,7 @@ const linkClass = "rounded-lg border border-border px-4 py-2 text-sm font-medium
 
 export default async function SettingsPage() {
   const user = await requireUser();
+  const profile = await getProfile(user.id);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
@@ -26,6 +29,17 @@ export default async function SettingsPage() {
           </p>
         </div>
         <PasswordForm email={user.email} />
+      </section>
+
+      <section className="flex flex-col gap-3 border-t border-border pt-6">
+        <div>
+          <h2 className="font-medium">Estadísticas</h2>
+          <p className="mt-1 text-sm text-muted">
+            Las horas de lectura se estiman con las páginas leídas. Ajusta a tu ritmo (una novela
+            suele ir a 1-2 minutos por página).
+          </p>
+        </div>
+        <MinutesPerPageForm value={profile.minutesPerPage} />
       </section>
 
       <section className="flex flex-col gap-3 border-t border-border pt-6">

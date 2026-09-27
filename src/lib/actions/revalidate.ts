@@ -7,5 +7,7 @@ export function revalidateEntryPages(entryId?: string) {
   revalidatePath("/");
   revalidatePath("/list");
   revalidatePath("/favorites");
+  revalidatePath("/diary");
+  revalidatePath("/stats");
   if (entryId) revalidatePath(`/entry/${entryId}`);
 }

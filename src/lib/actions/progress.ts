@@ -12,6 +12,7 @@ import {
   hasEpisodes,
   isProgressComplete,
   nextEpisode,
+  progressDelta,
   progressStateFromRow,
 } from "@/lib/progress";
 import { parseProgressForm } from "@/lib/validation/entry";
@@ -22,9 +23,18 @@ import { revalidateEntryPages } from "./revalidate";
 
 const pagesSchema = z.number().int().min(1).max(5000);
 
+/** La entrada con los cambios aplicados (ignorando los campos undefined). */
+function withChanges(entry: Entry, changes: TablesUpdate<"entries">): Entry {
+  const defined = Object.fromEntries(
+    Object.entries(changes).filter(([, value]) => value !== undefined),
+  );
+  return { ...entry, ...defined };
+}
+
 /**
  * Guarda cambios de progreso. Si la entrada estaba pendiente o en pausa, pasa a
- * "en curso" y apunta hoy como fecha de inicio si no tenía.
+ * "en curso" y apunta hoy como fecha de inicio si no tenía. Los avances quedan
+ * registrados en activity_log para el diario.
  */
 async function saveProgress(
   entry: Entry,
@@ -51,6 +61,22 @@ async function saveProgress(
     return { status: "error", message: "No se pudo guardar el progreso." };
   }
   if (!data) return { status: "error", message: "La entrada ya no existe." };
+
+  const delta = progressDelta(
+    progressStateFromRow(entry),
+    progressStateFromRow(withChanges(entry, update)),
+  );
+  if (delta) {
+    const log = await supabase.from("activity_log").insert({
+      user_id: userId,
+      entry_id: entry.id,
+      kind: "progress",
+      date: todayISO(),
+      detail: delta,
+    });
+    // El progreso ya está guardado: un fallo del registro no debe deshacerlo.
+    if (log.error) console.error("activity_log progress", log.error);
+  }
 
   revalidateEntryPages(entry.id);
   return { status: "saved", at: Date.now() };

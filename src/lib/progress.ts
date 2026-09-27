@@ -141,3 +141,22 @@ export function progressStateFromRow(row: ProgressRow): ProgressState {
     seasons: parseEntryMetadata(row.metadata).seasons ?? null,
   };
 }
+
+/**
+ * Cuánto se ha avanzado entre dos estados (para el diario). Solo avances: retroceder o
+ * corregir hacia atrás no genera evento.
+ */
+export function progressDelta(
+  before: ProgressState,
+  after: ProgressState,
+): { amount: number; unit: "episode" | "page" } | null {
+  if (hasEpisodes(before.mediaType)) {
+    const amount = watchedEpisodes(after) - watchedEpisodes(before);
+    return amount > 0 ? { amount, unit: "episode" } : null;
+  }
+  if (before.mediaType === "book") {
+    const amount = (after.currentPage ?? 0) - (before.currentPage ?? 0);
+    return amount > 0 ? { amount, unit: "page" } : null;
+  }
+  return null;
+}

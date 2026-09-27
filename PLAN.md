@@ -90,18 +90,18 @@ El contexto técnico, el modelo de datos y las convenciones están en [CLAUDE.md
 
 **Objetivo:** ver mi historial en el tiempo y sacar conclusiones.
 
-- [ ] Tabla `activity_log` (empezar, avanzar, terminar, volver a ver), que se rellena automáticamente al cambiar el estado o el progreso
-- [ ] Migración: generar el log histórico a partir de las `started_at` / `finished_at` que ya existen
-- [ ] **Calendario** mensual con las portadas en miniatura por día + vista **timeline** en lista
-- [ ] Al pulsar un día → lo que vi o leí ese día
-- [ ] **Estadísticas** (`/stats`):
-  - [ ] Horas totales por tipo (películas: duración; series y anime: episodios × duración; libros: páginas × minutos por página, configurable)
-  - [ ] Número de entradas por tipo y por estado
-  - [ ] Puntuación media (global y por tipo) y distribución de notas
-  - [ ] Géneros y tags más frecuentes y mejor puntuados
-  - [ ] Actividad por mes y por año
-  - [ ] Filtro por año ("mi 2026")
-- [ ] Cálculos de estadísticas en `lib/stats/` con tests unitarios
+- [x] Registro de actividad: los avances (+episodios, +páginas) y los rewatches se guardan en `activity_log`; inicio y fin se leen de `started_at`/`finished_at` (una sola fuente de verdad, sin duplicar)
+- [x] Histórico: no hace falta migrar, porque las fechas de inicio y fin ya existentes aparecen solas en el diario
+- [x] **Calendario** mensual con las portadas en miniatura por día + vista **timeline** en lista
+- [x] Al pulsar un día → lo que vi o leí ese día
+- [x] **Estadísticas** (`/stats`):
+  - [x] Horas totales por tipo (películas: duración; series y anime: episodios × duración; libros: páginas × minutos por página, configurable)
+  - [x] Número de entradas por tipo y por estado
+  - [x] Puntuación media (global y por tipo) y distribución de notas
+  - [x] Géneros y tags más frecuentes y mejor puntuados
+  - [x] Actividad por mes y por año
+  - [x] Filtro por año ("mi 2026")
+- [x] Cálculos de estadísticas en `lib/stats.ts` con tests unitarios
 
 **Hecho cuando:** la página de estadísticas refleja bien mi último año de consumo.
 

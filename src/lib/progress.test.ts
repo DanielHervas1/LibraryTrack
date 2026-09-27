@@ -6,6 +6,7 @@ import {
   finalPosition,
   isProgressComplete,
   nextEpisode,
+  progressDelta,
   progressRatio,
   watchedEpisodes,
   type ProgressState,
@@ -138,5 +139,30 @@ describe("describeProgress", () => {
       describeProgress({ ...empty, mediaType: "book", currentPage: 120, totalPages: 736 }),
     ).toBe("Pág. 120 de 736");
     expect(describeProgress({ ...empty, mediaType: "book" })).toBeNull();
+  });
+});
+
+describe("progressDelta", () => {
+  it("cuenta episodios entre temporadas", () => {
+    const before = { ...breakingBad, currentSeason: 1, currentEpisode: 6 };
+    const after = { ...breakingBad, currentSeason: 2, currentEpisode: 2 };
+    expect(progressDelta(before, after)).toEqual({ amount: 3, unit: "episode" });
+  });
+
+  it("cuenta páginas", () => {
+    const book: ProgressState = { ...empty, mediaType: "book", currentPage: 100, totalPages: 300 };
+    expect(progressDelta(book, { ...book, currentPage: 145 })).toEqual({
+      amount: 45,
+      unit: "page",
+    });
+  });
+
+  it("ignora retrocesos, cambios nulos y películas", () => {
+    const book: ProgressState = { ...empty, mediaType: "book", currentPage: 100 };
+    expect(progressDelta(book, { ...book, currentPage: 90 })).toBeNull();
+    expect(progressDelta(book, book)).toBeNull();
+    expect(
+      progressDelta({ ...empty, mediaType: "movie" }, { ...empty, mediaType: "movie" }),
+    ).toBeNull();
   });
 });
