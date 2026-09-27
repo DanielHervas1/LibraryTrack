@@ -62,6 +62,7 @@ export const entryFormSchema = z
     started_at: optionalDate,
     finished_at: optionalDate,
     genres: genresField,
+    is_private: z.boolean(),
     runtime_minutes: optionalInt(1, 2000).optional(),
     authors: authorsField.optional(),
   })
@@ -81,6 +82,8 @@ export function parseEntryForm(formData: FormData) {
     started_at: text(formData, "started_at"),
     finished_at: text(formData, "finished_at"),
     genres: formData.getAll("genres").filter((value) => typeof value === "string"),
+    // Casilla: si no está marcada, el navegador no la envía.
+    is_private: formData.get("is_private") === "on",
     runtime_minutes: ifPresent(formData, "runtime_minutes"),
     authors: ifPresent(formData, "authors"),
   });

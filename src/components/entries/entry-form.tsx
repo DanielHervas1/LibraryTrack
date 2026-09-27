@@ -95,6 +95,19 @@ export function EntryForm({ entry }: { entry: Entry }) {
 
       <GenreEditor initialGenres={entry.genres} />
 
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          name="is_private"
+          defaultChecked={entry.is_private}
+          className="mt-0.5 accent-[var(--accent)]"
+        />
+        <span>
+          Privada
+          <span className="block text-xs text-muted">No aparece en tu perfil compartido.</span>
+        </span>
+      </label>
+
       {entry.media_type === "movie" ? (
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">Duración (min)</span>

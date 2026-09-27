@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import { PasswordForm } from "@/components/auth/password-form";
 import { MinutesPerPageForm } from "@/components/settings/minutes-per-page-form";
+import { ShareSettings } from "@/components/settings/share-settings";
 import { signOut } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth/session";
 import { getProfile } from "@/lib/db/profile";
@@ -15,6 +17,14 @@ const linkClass = "rounded-lg border border-border px-4 py-2 text-sm font-medium
 export default async function SettingsPage() {
   const user = await requireUser();
   const profile = await getProfile(user.id);
+
+  // Origen real de la petición (Vercel o localhost), para construir el enlace compartido.
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
+  const protocol =
+    requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const baseUrl = `${protocol}://${host}`;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
@@ -40,6 +50,23 @@ export default async function SettingsPage() {
           </p>
         </div>
         <MinutesPerPageForm value={profile.minutesPerPage} />
+      </section>
+
+      <section id="share" className="flex scroll-mt-6 flex-col gap-3 border-t border-border pt-6">
+        <div>
+          <h2 className="font-medium">Perfil compartido</h2>
+          <p className="mt-1 text-sm text-muted">
+            Un enlace secreto para que un amigo vea tu colección sin poder editar nada. No aparece
+            en buscadores y puedes desactivarlo o cambiarlo cuando quieras. Las entradas marcadas
+            como privadas nunca se muestran.
+          </p>
+        </div>
+        <ShareSettings
+          baseUrl={baseUrl}
+          shareToken={profile.shareToken}
+          displayName={profile.displayName}
+          hideReviews={profile.shareHideReviews}
+        />
       </section>
 
       <section className="flex flex-col gap-3 border-t border-border pt-6">

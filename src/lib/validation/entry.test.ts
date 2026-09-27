@@ -134,3 +134,10 @@ describe("parseProgressForm", () => {
     );
   });
 });
+
+describe("is_private", () => {
+  it("es true solo si la casilla viene marcada", () => {
+    expect(parseEntryForm(form({ ...base, is_private: "on" })).data?.is_private).toBe(true);
+    expect(parseEntryForm(form(base)).data?.is_private).toBe(false);
+  });
+});

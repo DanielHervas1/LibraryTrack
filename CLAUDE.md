@@ -4,7 +4,7 @@ App personal para registrar lo que consumo: **películas, series, anime y libros
 
 - Nombre del repo: `LibraryTrack`. En el brief aparece como "Watch Diary" (nombre provisional, aún sin decidir).
 - Hoja de ruta y estado actual: [PLAN.md](PLAN.md). **Antes de trabajar, mira en qué fase estamos** (casillas marcadas) y no adelantes trabajo de fases posteriores sin que se pida.
-- Estado actual: **Fases 0 a 4 implementadas y desplegadas** en https://library-track.vercel.app. De la Fase 5 está hecha la PWA básica (manifest, iconos, service worker); faltan el perfil compartido y el catálogo offline. Las casillas de PLAN.md son la fuente de verdad.
+- Estado actual: **Fases 0 a 5 implementadas y desplegadas** en https://library-track.vercel.app, salvo el catálogo offline de la Fase 5 (aplazado). Queda la Fase 6, sin compromiso. Las casillas de PLAN.md son la fuente de verdad.
 - Supabase quedó confirmado como backend (27-09-2026). El resto de "Decisiones propuestas" se aplicó tal cual.
 
 @AGENTS.md
@@ -194,6 +194,15 @@ ALLOWED_EMAIL=                   # única cuenta autorizada a iniciar sesión
 - `profiles` (una fila por usuario, creada con upsert al guardar): de momento `minutes_per_page`; la Fase 5 añade los campos del perfil compartido.
 - **Navegación:** en el móvil, barra inferior (Catálogo · Mi lista · Añadir · Diario · Stats) e iconos de Favoritos y Ajustes en la cabecera. Desde `md`, todo en la cabecera.
 - Chrome headless no baja de 500 px de ancho: para ver una vista a tamaño de móvil, mete el contenido en un contenedor `w-[390px]`.
+
+## Perfil compartido y seguridad
+
+- `/share/[token]` es público (fuera del grupo `(app)`, en PUBLIC_PATHS del proxy). Lee los datos mediante las funciones SQL `shared_profile` y `shared_entries`: son **SECURITY DEFINER**, las pueden ejecutar anon y authenticated, y solo devuelven entradas con `is_private = false` cuando el token coincide (`review` va a null si `share_hide_reviews`). **No se usa la service-role key.**
+- El analizador de Supabase avisa `anon_security_definer_function_executable` por esas dos funciones: es **intencionado**. Si se añade otra función SECURITY DEFINER, hay que revisarla con el mismo cuidado.
+- El token se genera con `crypto.getRandomValues` (`lib/share.ts`). Regenerarlo invalida el anterior; desactivar pone `share_token = null`.
+- La URL del enlace se construye en el servidor, con las cabeceras `x-forwarded-host`/`host`, para que no haya diferencias de hidratación.
+- Cabeceras de `next.config.ts`: `X-Robots-Tag: noindex`, `nosniff`, `X-Frame-Options: DENY` en todo; `Referrer-Policy: no-referrer` en `/share/*` para que el token no viaje en el Referer.
+- Auditoría repetible: todas las Server Actions exportadas deben llamar a `requireUser()` (salvo login, enlace y logout); todas las tablas con RLS; buscar el valor del token de TMDB en `.next/static` tras el build.
 
 ## PWA
 

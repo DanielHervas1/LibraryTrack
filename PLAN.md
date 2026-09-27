@@ -114,12 +114,12 @@ El contexto técnico, el modelo de datos y las convenciones están en [CLAUDE.md
 - [x] `app/manifest.ts` (nombre, iconos, `theme_color`, `display: standalone`)
 - [x] Service worker **escrito a mano** (no Serwist: su plugin depende de webpack y Next 16 usa Turbopack por defecto): cachea el app shell (`_next/static`, iconos) y las páginas ya visitadas
 - [x] Página offline de respaldo (`/offline`)
-- [ ] Lectura del catálogo en caché sin conexión (pendiente: cachear las respuestas de Supabase, no solo el HTML de las páginas visitadas)
-- [ ] Comprobar que se instala en Android (Chrome) y en iOS (Safari → "Añadir a pantalla de inicio") — pendiente de que la app esté desplegada
-- [ ] **Perfil de solo lectura** en `/share/[token]`: token aleatorio largo, regenerable y revocable desde `/settings`
-- [ ] El perfil compartido no muestra las entradas marcadas como privadas ni las opiniones si así lo configuro
-- [ ] `noindex` (meta robots + cabecera `X-Robots-Tag`) en todas las rutas `/share/*`
-- [ ] Revisión de seguridad: RLS, que ninguna Server Action se pueda llamar sin sesión, que no haya secretos en el bundle del cliente
+- [ ] Lectura del catálogo en caché sin conexión (aplazado: la navegación interna de Next usa peticiones RSC que el service worker no cachea; hacerlo bien pide una estrategia propia y no es imprescindible para el uso diario)
+- [x] Comprobar que se instala en Android (Chrome). iOS sin probar (no hay iPhone)
+- [x] **Perfil de solo lectura** en `/share/[token]`: token aleatorio largo, regenerable y revocable desde `/settings`
+- [x] El perfil compartido no muestra las entradas marcadas como privadas ni las opiniones si así lo configuro
+- [x] `noindex` (meta robots + cabecera `X-Robots-Tag`) en toda la app, y `Referrer-Policy: no-referrer` en `/share/*`
+- [x] Revisión de seguridad: RLS en las 5 tablas, todas las Server Actions (salvo login y logout) exigen sesión, ningún secreto en el bundle del cliente, cabeceras `nosniff` y `X-Frame-Options: DENY`
 
 **Hecho cuando:** la app está instalada en mi móvil y un amigo abre mi enlace sin poder editar nada.
 

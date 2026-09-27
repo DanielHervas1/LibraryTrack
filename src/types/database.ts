@@ -193,19 +193,28 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          display_name: string | null
           minutes_per_page: number
+          share_hide_reviews: boolean
+          share_token: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
           minutes_per_page?: number
+          share_hide_reviews?: boolean
+          share_token?: string | null
           updated_at?: string
           user_id?: string
         }
         Update: {
           created_at?: string
+          display_name?: string | null
           minutes_per_page?: number
+          share_hide_reviews?: boolean
+          share_token?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -240,7 +249,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      shared_entries: {
+        Args: { p_token: string }
+        Returns: {
+          cover_url: string
+          created_at: string
+          finished_at: string
+          genres: string[]
+          id: string
+          is_favorite: boolean
+          media_type: Database["public"]["Enums"]["media_type"]
+          release_year: number
+          review: string
+          score: number
+          status: Database["public"]["Enums"]["entry_status"]
+          title: string
+        }[]
+      }
+      shared_profile: {
+        Args: { p_token: string }
+        Returns: {
+          display_name: string
+          hide_reviews: boolean
+        }[]
+      }
     }
     Enums: {
       activity_kind: "started" | "progress" | "finished" | "rewatched"
