@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isRateLimited, normalizeOtpCode, sendErrorMessage, verifyErrorMessage } from "./errors";
+import {
+  isRateLimited,
+  sendErrorMessage,
+  setPasswordErrorMessage,
+  signInErrorMessage,
+} from "./errors";
 
 describe("isRateLimited", () => {
   it("detecta el 429 y los códigos de límite", () => {
@@ -18,21 +23,17 @@ describe("mensajes", () => {
     expect(sendErrorMessage({ status: 500 })).toMatch(/No se pudo enviar/);
   });
 
-  it("distinguen código caducado de incorrecto", () => {
-    expect(verifyErrorMessage({ code: "otp_expired" })).toMatch(/caducado/);
-    expect(verifyErrorMessage({ status: 400 })).toMatch(/incorrecto/);
-  });
-});
-
-describe("normalizeOtpCode", () => {
-  it("acepta 6-10 dígitos e ignora espacios", () => {
-    expect(normalizeOtpCode("123 456")).toBe("123456");
-    expect(normalizeOtpCode("12345678")).toBe("12345678");
+  it("el login no revela si falla el email o la contraseña", () => {
+    expect(signInErrorMessage({ code: "invalid_credentials" })).toBe(
+      "Email o contraseña incorrectos.",
+    );
+    expect(signInErrorMessage(null)).toBe("Email o contraseña incorrectos.");
+    expect(signInErrorMessage({ status: 429 })).toMatch(/Demasiados intentos/);
   });
 
-  it("rechaza lo demás", () => {
-    expect(normalizeOtpCode("12345")).toBeNull();
-    expect(normalizeOtpCode("12a456")).toBeNull();
-    expect(normalizeOtpCode("")).toBeNull();
+  it("traduce los errores al fijar contraseña", () => {
+    expect(setPasswordErrorMessage({ code: "same_password" })).toMatch(/actual/);
+    expect(setPasswordErrorMessage({ code: "weak_password" })).toMatch(/débil/);
+    expect(setPasswordErrorMessage({ status: 500 })).toMatch(/No se pudo/);
   });
 });

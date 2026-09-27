@@ -25,7 +25,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12">
       <div>
         <h1 className="text-2xl font-semibold">LibraryTrack</h1>
-        <p className="mt-1 text-sm text-muted">Te enviaremos un código de acceso a tu email.</p>
+        <p className="mt-1 text-sm text-muted">Entra con tu email y tu contraseña.</p>
       </div>
       {error && (
         <p className="rounded-lg bg-danger/10 p-3 text-sm text-danger" role="alert">

@@ -18,15 +18,23 @@ export function sendErrorMessage(error: AuthErrorLike): string {
   return "No se pudo enviar el correo. Inténtalo de nuevo.";
 }
 
-export function verifyErrorMessage(error: AuthErrorLike): string {
+/** Mismo mensaje para email desconocido y contraseña incorrecta: no revela cuál falla. */
+export function signInErrorMessage(error: AuthErrorLike): string {
   if (isRateLimited(error)) return "Demasiados intentos. Espera unos minutos.";
-  if (error?.code === "otp_expired")
-    return "El código ha caducado o no es correcto. Pide uno nuevo.";
-  return "Código incorrecto. Revisa el correo y vuelve a intentarlo.";
+  return "Email o contraseña incorrectos.";
 }
 
-/** "123 456" → "123456". Supabase usa códigos de 6 dígitos por defecto (configurable hasta 10). */
-export function normalizeOtpCode(value: string): string | null {
-  const digits = value.replace(/\s+/g, "");
-  return /^\d{6,10}$/.test(digits) ? digits : null;
+export function setPasswordErrorMessage(error: AuthErrorLike): string {
+  switch (error?.code) {
+    case "same_password":
+      return "Esa ya es tu contraseña actual.";
+    case "weak_password":
+      return "Contraseña demasiado débil. Usa una más larga o variada.";
+    case "reauthentication_needed":
+      return "Supabase pide volver a identificarte: cierra sesión, entra con el enlace por email y vuelve a intentarlo.";
+    default:
+      return isRateLimited(error)
+        ? "Demasiados intentos. Espera unos minutos."
+        : "No se pudo guardar la contraseña.";
+  }
 }

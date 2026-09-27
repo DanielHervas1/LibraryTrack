@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PasswordForm } from "@/components/auth/password-form";
 import { signOut } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth/session";
 
@@ -16,7 +17,18 @@ export default async function SettingsPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
       <h1 className="text-xl font-semibold">Ajustes</h1>
 
-      <section className="flex flex-col gap-3">
+      <section id="password" className="flex scroll-mt-6 flex-col gap-3">
+        <div>
+          <h2 className="font-medium">Contraseña</h2>
+          <p className="mt-1 text-sm text-muted">
+            Crea o cambia la contraseña con la que entras en la app (también dentro de la app
+            instalada en el móvil).
+          </p>
+        </div>
+        <PasswordForm email={user.email} />
+      </section>
+
+      <section className="flex flex-col gap-3 border-t border-border pt-6">
         <div>
           <h2 className="font-medium">Exportar mis datos</h2>
           <p className="mt-1 text-sm text-muted">
