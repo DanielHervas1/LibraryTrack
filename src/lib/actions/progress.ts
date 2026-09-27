@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireUser } from "@/lib/auth/session";
@@ -19,6 +18,7 @@ import { parseProgressForm } from "@/lib/validation/entry";
 import type { TablesUpdate } from "@/types/database";
 
 import type { ActionState } from "./entries";
+import { revalidateEntryPages } from "./revalidate";
 
 const pagesSchema = z.number().int().min(1).max(5000);
 
@@ -52,8 +52,7 @@ async function saveProgress(
   }
   if (!data) return { status: "error", message: "La entrada ya no existe." };
 
-  revalidatePath("/");
-  revalidatePath(`/entry/${entry.id}`);
+  revalidateEntryPages(entry.id);
   return { status: "saved", at: Date.now() };
 }
 
@@ -147,7 +146,6 @@ export async function markCompleted(id: string): Promise<ActionState> {
     return { status: "error", message: "No se pudo marcar como completado." };
   }
 
-  revalidatePath("/");
-  revalidatePath(`/entry/${id}`);
+  revalidateEntryPages(id);
   return { status: "saved", at: Date.now() };
 }

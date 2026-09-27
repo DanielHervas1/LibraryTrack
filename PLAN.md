@@ -72,15 +72,15 @@ El contexto técnico, el modelo de datos y las convenciones están en [CLAUDE.md
 
 **Objetivo:** convertir el registro en una colección cómoda de explorar.
 
-- [ ] **Favoritos**: corazón en la tarjeta del grid y en el detalle + sección `/favorites`
-- [ ] **Mi lista**: sección `/list` = entradas en estado "Por ver", con prioridad opcional (ver la decisión en CLAUDE.md)
-- [ ] **Tags libres**: crear sobre la marcha, autocompletar los existentes, filtrar por tag
-- [ ] **Contador de rewatches/relecturas** (botón "Volver a ver" que suma 1 y registra la fecha)
-- [ ] **Selector aleatorio** "No sé qué ver": elige de Mi lista, con filtro opcional por tipo y duración máxima
-- [ ] Búsqueda por texto dentro de mi catálogo + filtros combinados (tipo, estado, género, tag, favorito)
-- [ ] Vista detalle como **modal** sobre el grid (intercepting routes), manteniendo `/entry/[id]` para enlaces directos
-- [ ] **Exportación** JSON (completa, con todos los campos) y CSV (una fila por entrada) desde `/settings`
-- [ ] (Opcional) Importar desde el JSON exportado → sirve de copia de seguridad restaurable
+- [x] **Favoritos**: corazón en la tarjeta del grid y en el detalle + sección `/favorites`
+- [x] **Mi lista**: sección `/list` = entradas en estado "Por ver", con prioridad opcional (ver la decisión en CLAUDE.md)
+- [x] **Tags libres**: crear sobre la marcha, autocompletar los existentes, filtrar por tag
+- [x] **Contador de rewatches/relecturas** (botón "Volver a ver" que suma 1 y registra la fecha en `activity_log`)
+- [x] **Selector aleatorio** "No sé qué ver": elige de Mi lista, con filtro opcional por tipo y duración máxima
+- [x] Búsqueda por texto dentro de mi catálogo + filtros combinados (tipo, estado, género, tag, favorito)
+- [x] Vista detalle como **modal** sobre el grid (intercepting routes), manteniendo `/entry/[id]` para enlaces directos
+- [x] **Exportación** JSON (completa, con todos los campos) y CSV (una fila por entrada) desde `/settings`
+- [ ] (Opcional, pendiente) Importar desde el JSON exportado → sirve de copia de seguridad restaurable
 
 **Hecho cuando:** puedo responder rápido a "¿qué veo esta noche?" y tengo una copia de mis datos en local.
 
@@ -111,10 +111,11 @@ El contexto técnico, el modelo de datos y las convenciones están en [CLAUDE.md
 
 **Objetivo:** instalar la app en el móvil y poder enseñársela a un amigo.
 
-- [ ] `app/manifest.ts` (nombre, iconos, `theme_color`, `display: standalone`)
-- [ ] Service worker con **Serwist** (`@serwist/next`): cachear el app shell y las portadas
-- [ ] Página offline de respaldo y lectura del catálogo en caché sin conexión
-- [ ] Comprobar que se instala en Android (Chrome) y en iOS (Safari → "Añadir a pantalla de inicio")
+- [x] `app/manifest.ts` (nombre, iconos, `theme_color`, `display: standalone`)
+- [x] Service worker **escrito a mano** (no Serwist: su plugin depende de webpack y Next 16 usa Turbopack por defecto): cachea el app shell (`_next/static`, iconos) y las páginas ya visitadas
+- [x] Página offline de respaldo (`/offline`)
+- [ ] Lectura del catálogo en caché sin conexión (pendiente: cachear las respuestas de Supabase, no solo el HTML de las páginas visitadas)
+- [ ] Comprobar que se instala en Android (Chrome) y en iOS (Safari → "Añadir a pantalla de inicio") — pendiente de que la app esté desplegada
 - [ ] **Perfil de solo lectura** en `/share/[token]`: token aleatorio largo, regenerable y revocable desde `/settings`
 - [ ] El perfil compartido no muestra las entradas marcadas como privadas ni las opiniones si así lo configuro
 - [ ] `noindex` (meta robots + cabecera `X-Robots-Tag`) en todas las rutas `/share/*`

@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          created_at: string
+          date: string
+          detail: Json
+          entry_id: string
+          id: string
+          kind: Database["public"]["Enums"]["activity_kind"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          detail?: Json
+          entry_id: string
+          id?: string
+          kind: Database["public"]["Enums"]["activity_kind"]
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          detail?: Json
+          entry_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["activity_kind"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entries: {
         Row: {
           authors: string[]
@@ -116,6 +154,66 @@ export type Database = {
         }
         Relationships: []
       }
+      entry_tags: {
+        Row: {
+          created_at: string
+          entry_id: string
+          tag_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          tag_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          tag_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_tags_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entry_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          name_key: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          name_key?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          name_key?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -124,6 +222,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      activity_kind: "started" | "progress" | "finished" | "rewatched"
       entry_status:
         | "planned"
         | "in_progress"
@@ -259,6 +358,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_kind: ["started", "progress", "finished", "rewatched"],
       entry_status: [
         "planned",
         "in_progress",

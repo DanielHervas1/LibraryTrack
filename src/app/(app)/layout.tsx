@@ -1,32 +1,27 @@
 import Link from "next/link";
 
-import { signOut } from "@/lib/actions/auth";
+import { DesktopNav, MobileNav } from "@/components/layout/nav-links";
 import { requireUser } from "@/lib/auth/session";
 
-export default async function AppLayout({ children }: LayoutProps<"/">) {
-  const user = await requireUser();
+/** Layout de la app autenticada. `modal` es el slot @modal (ficha sobre el catálogo). */
+export default async function AppLayout({ children, modal }: LayoutProps<"/">) {
+  await requireUser();
 
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <nav className="flex items-center gap-5">
-            <Link href="/" className="font-semibold">
-              LibraryTrack
-            </Link>
-            <Link href="/add" className="text-sm text-muted hover:text-foreground">
-              Añadir
-            </Link>
-          </nav>
-          <form action={signOut} className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted sm:inline">{user.email}</span>
-            <button type="submit" className="text-sm text-muted hover:text-foreground">
-              Salir
-            </button>
-          </form>
+          <Link href="/" className="flex items-center gap-2 font-semibold">
+            {/* eslint-disable-next-line @next/next/no-img-element -- SVG estático pequeño */}
+            <img src="/icon.svg" alt="" className="size-6" />
+            LibraryTrack
+          </Link>
+          <DesktopNav />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-28 sm:pb-10">{children}</main>
+      <MobileNav />
+      {modal}
     </div>
   );
 }

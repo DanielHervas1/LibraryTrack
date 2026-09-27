@@ -60,3 +60,10 @@ export type SortOption = keyof typeof SORT_OPTIONS;
 export const COVER_BUCKET = "covers";
 export const COVER_MAX_BYTES = 5 * 1024 * 1024;
 export const COVER_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+/** Prioridad de "Mi lista" (columna entries.priority). */
+export const PRIORITY_LABELS: Record<1 | 2 | 3, string> = {
+  1: "Alta",
+  2: "Media",
+  3: "Baja",
+};

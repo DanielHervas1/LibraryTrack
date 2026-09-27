@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CatalogFilters } from "@/components/entries/catalog-filters";
-import { EntryCard } from "@/components/entries/entry-card";
+import { CatalogSearch } from "@/components/entries/catalog-search";
+import { EntryGrid } from "@/components/entries/entry-grid";
 import { requireUser } from "@/lib/auth/session";
-import { statusLabel } from "@/lib/constants";
-import { listEntries } from "@/lib/db/entries";
-import { parseMediaType, parseSort, parseStatus } from "@/lib/search-params";
+import { catalogHref, hasActiveFilters } from "@/lib/catalog-url";
+import { listEntries, listGenres, listTags } from "@/lib/db/entries";
+import { parseCatalogFilters } from "@/lib/search-params";
 
 export const metadata: Metadata = {
   title: "Catálogo",
@@ -14,14 +15,15 @@ export const metadata: Metadata = {
 
 export default async function CatalogPage(props: PageProps<"/">) {
   const user = await requireUser();
-  const searchParams = await props.searchParams;
-  const mediaType = parseMediaType(searchParams.type);
-  const status = parseStatus(searchParams.status);
-  const sort = parseSort(searchParams.sort);
+  const filters = parseCatalogFilters(await props.searchParams);
 
-  const entries = await listEntries(user.id, { mediaType, status, sort });
-  const filtered = Boolean(mediaType || status);
-  const addHref = mediaType ? `/add?type=${mediaType}` : "/add";
+  const [entries, genres, tags] = await Promise.all([
+    listEntries(user.id, filters),
+    listGenres(user.id),
+    listTags(user.id),
+  ]);
+  const filtered = hasActiveFilters(filters);
+  const addHref = filters.mediaType ? `/add?type=${filters.mediaType}` : "/add";
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,36 +37,36 @@ export default async function CatalogPage(props: PageProps<"/">) {
         </Link>
       </div>
 
-      <CatalogFilters mediaType={mediaType} status={status} sort={sort} />
+      <CatalogSearch filters={filters} genres={genres} tags={tags.map((tag) => tag.name)} />
+      <CatalogFilters filters={filters} />
 
       {entries.length > 0 ? (
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 lg:grid-cols-5">
-          {entries.map((entry, index) => (
-            <li key={entry.id}>
-              <EntryCard entry={entry} preload={index < 4} showType={!mediaType} />
-            </li>
-          ))}
-        </ul>
+        <EntryGrid entries={entries} showType={!filters.mediaType} />
       ) : (
         <section className="flex flex-col items-center gap-3 py-20 text-center">
           <h2 className="text-lg font-semibold">
-            {filtered
-              ? status
-                ? `Nada en "${statusLabel(status, mediaType)}"`
-                : "Nada de este tipo todavía"
-              : "Tu catálogo está vacío"}
+            {filtered ? "Nada con estos filtros" : "Tu catálogo está vacío"}
           </h2>
           <p className="text-sm text-muted">
             {filtered
-              ? "Prueba con otro filtro o añade algo nuevo."
+              ? "Prueba a quitar algún filtro."
               : "Busca una película, serie, anime o libro para empezar tu registro."}
           </p>
-          <Link
-            href={addHref}
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
-          >
-            Añadir
-          </Link>
+          {filtered ? (
+            <Link
+              href={catalogHref({ sort: filters.sort })}
+              className="text-sm text-accent hover:underline"
+            >
+              Quitar filtros
+            </Link>
+          ) : (
+            <Link
+              href={addHref}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
+            >
+              Añadir
+            </Link>
+          )}
         </section>
       )}
     </div>

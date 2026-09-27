@@ -4,7 +4,7 @@ App personal para registrar lo que consumo: **películas, series, anime y libros
 
 - Nombre del repo: `LibraryTrack`. En el brief aparece como "Watch Diary" (nombre provisional, aún sin decidir).
 - Hoja de ruta y estado actual: [PLAN.md](PLAN.md). **Antes de trabajar, mira en qué fase estamos** (casillas marcadas) y no adelantes trabajo de fases posteriores sin que se pida.
-- Estado actual: **Fases 0 (salvo el despliegue en Vercel), 1 y 2 implementadas.** Las casillas de PLAN.md son la fuente de verdad.
+- Estado actual: **Fases 0 (salvo el despliegue en Vercel), 1, 2 y 3 implementadas; PWA básica de la Fase 5 hecha** (manifest, iconos, service worker); el resto de la Fase 5 (catálogo offline, perfil compartido) y toda la Fase 4 siguen pendientes. Las casillas de PLAN.md son la fuente de verdad.
 - Supabase quedó confirmado como backend (27-09-2026). El resto de "Decisiones propuestas" se aplicó tal cual.
 
 @AGENTS.md
@@ -50,7 +50,6 @@ Si el usuario confirma o cambia alguna, actualiza esta sección y pásala a "Dec
 | Estilos | **Tailwind CSS** | Rápido para montar el grid y un diseño pensado primero para móvil |
 | Validación | **Zod** | Para formularios, Server Actions y respuestas de las APIs |
 | Hosting | **Vercel** | Despliegue sin configuración para Next.js |
-| PWA | **Serwist** (`@serwist/next`) | `next-pwa` está sin mantenimiento |
 | Tests | **Vitest** para la lógica (proveedores, estadísticas, exportación); E2E solo si hace falta | Enfocar los tests donde hay lógica de verdad |
 | Gestor de paquetes | **npm** | Lo más simple |
 | Modelo de tipos | **Una sola tabla `entries`** con columna `media_type` | Catálogo, estadísticas y exportación trabajan sobre todos los tipos a la vez; separarlos obligaría a hacer UNION en todas partes |
@@ -63,7 +62,7 @@ Si el usuario confirma o cambia alguna, actualiza esta sección y pásala a "Dec
 
 ## Stack
 
-Next.js (App Router) · React · TypeScript · Tailwind CSS · Supabase (Postgres, Auth, Storage) · Zod · Serwist · Vitest · Vercel.
+Next.js (App Router) · React · TypeScript · Tailwind CSS · Supabase (Postgres, Auth, Storage) · Zod · Vitest · Vercel.
 
 ## Estructura de carpetas propuesta
 
@@ -74,7 +73,8 @@ src/
     (app)/                   # rutas protegidas (layout con navegación)
       page.tsx               # catálogo en grid (filtros por tipo, estado, tag…)
       entry/[id]/page.tsx    # detalle (página completa)
-      @modal/(.)entry/[id]/  # detalle como modal sobre el grid (Fase 3)
+      @modal/                # slot del modal: (.)entry/[id] intercepta la ficha; page.tsx,
+                             # [...catchAll] y default.tsx devuelven null para cerrarlo al navegar
       add/                   # buscar en la API / añadir a mano
       favorites/
       list/                  # "Mi lista" + selector aleatorio
@@ -106,7 +106,6 @@ src/
 supabase/
   migrations/                # SQL versionado; nunca cambiar el esquema a mano en el dashboard
 public/
-  icons/                     # iconos de la PWA
 ```
 
 ## Modelo de datos (borrador)
@@ -126,7 +125,7 @@ entries
   started_at date, finished_at date
   is_favorite bool, is_private bool (se oculta en el perfil compartido)
   priority smallint null         -- para ordenar "Mi lista"
-  rewatch_count int default 0
+  rewatch_count int default 0   -- caché: se recalcula desde activity_log (kind = rewatched)
   -- progreso y duración (null si no aplica):
   runtime_minutes                -- películas
   current_season, current_episode, total_episodes, episode_minutes   -- series/anime
@@ -135,10 +134,10 @@ entries
   metadata jsonb                 -- respuesta extra de la API que no tiene columna propia
   created_at, updated_at
 
-tags (id, user_id, name unique por usuario)
-entry_tags (entry_id, tag_id)
+tags (id, user_id, name, name_key generada = lower(btrim(name)); unique(user_id, name_key))
+entry_tags (entry_id, tag_id, user_id)
 
-activity_log  (Fase 4)
+activity_log  (creada en la Fase 3 para los rewatches; la Fase 4 añade el resto)
   id, entry_id, date, kind: started | progress | finished | rewatched, detail jsonb
 
 profiles
@@ -185,6 +184,15 @@ ALLOWED_EMAIL=                   # única cuenta autorizada a iniciar sesión
 - La lógica pura (estadísticas, exportación, normalización de APIs) va separada de la UI y tiene tests.
 - Los textos de la UI en español, centralizados en `lib/constants.ts` cuando se repiten (etiquetas de estados y tipos). Las etiquetas dependen del tipo: "Viendo" → "Leyendo" en libros.
 - Diseño **mobile-first**: la app se usará sobre todo en el móvil como PWA.
+
+## PWA
+
+- **No se usa Serwist.** Se decidió en el brief, pero su plugin de Next (`@serwist/next`) depende de `@serwist/webpack-plugin` y Next 16 usa Turbopack por defecto en `dev` y `build`. En vez de forzar el build a webpack, hay un service worker escrito a mano en [public/sw.js](public/sw.js).
+- El SW cachea el "app shell" (`_next/static`, `/icons`, `/icon.svg`, `/apple-icon.png`) con cache-first, y las páginas visitadas con network-first (con [/offline](src/app/offline/page.tsx) como último recurso). **No** cachea `/api/*` ni datos de Supabase: el catálogo solo está disponible offline si ya se visitó con conexión. Cachear datos es trabajo pendiente de la Fase 5.
+- Se registra desde [register-service-worker.tsx](src/components/layout/register-service-worker.tsx), **solo en producción** (`npm start`, o desplegado). En `next dev` no se registra, para no interferir con el refresco en caliente.
+- Los iconos (`public/icons/*.png` y `src/app/apple-icon.png`) se generaron una vez desde `src/app/icon.svg` con `sharp` (instalado y desinstalado solo para ese script; no es una dependencia del proyecto). Si el logo cambia, hay que regenerarlos.
+- `/sw.js` y `/offline` están excluidos de la protección de sesión en [proxy.ts](src/proxy.ts): el SW tiene que poder descargarlos sin estar logueado (p. ej. en `/login`, o con la sesión caducada estando offline).
+- Probar el registro del SW y el manifest necesita `npm run build && npm start`; en `next dev` no ocurre.
 - Commits con el formato Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`), en español o inglés pero de forma coherente.
 - Esquema de BD **solo por migraciones** en `supabase/migrations/`. Después de cada migración, regenerar `src/types/database.ts`.
 
@@ -204,6 +212,8 @@ npm run db:types     # regenera src/types/database.ts desde el proyecto enlazado
 Antes de dar una tarea por terminada, ejecuta `lint`, `typecheck`, `test` y `build`.
 
 - La CLI de Supabase ya está enlazada con el proyecto remoto. **No hay Docker**, así que `supabase start` y `db dump` no funcionan: las migraciones se aplican directamente al proyecto remoto con `db:push`.
+- `npx supabase db query --linked "SQL"` ejecuta SQL contra el proyecto remoto como `postgres`, sin RLS. Para probar escrituras, envuélvelas en `begin; … rollback;`.
+- `npx supabase db advisors --linked` revisa seguridad y rendimiento (RLS, índices…). Pásalo tras cada migración.
 - Después de cada migración, ejecuta `npm run db:types`.
 - El login es por magic link, así que no se puede probar una sesión con curl. Los flujos autenticados los prueba el usuario en el navegador.
 

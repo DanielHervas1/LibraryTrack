@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -13,6 +12,8 @@ import { getSupabaseEnv } from "@/lib/env";
 import { getProvider } from "@/lib/providers";
 import { coverPathFromUrl, isOwnCoverUrl } from "@/lib/storage/covers";
 import { parseEntryForm, parseManualEntryForm } from "@/lib/validation/entry";
+
+import { revalidateEntryPages } from "./revalidate";
 
 export type ActionState =
   { status: "idle" } | { status: "saved"; at: number } | { status: "error"; message: string };
@@ -27,11 +28,6 @@ const addFromProviderSchema = z.object({
   mediaType: z.enum(MEDIA_TYPES),
   externalId: z.string().min(1).max(100),
 });
-
-function revalidateEntry(id: string) {
-  revalidatePath("/");
-  revalidatePath(`/entry/${id}`);
-}
 
 /** Borra del bucket una portada subida a mano (si la URL es nuestra). */
 async function removeCustomCover(
@@ -108,7 +104,7 @@ export async function addFromProvider(formData: FormData) {
     throw error;
   }
 
-  revalidatePath("/");
+  revalidateEntryPages();
   redirect(`/entry/${data.id}`);
 }
 
@@ -135,7 +131,7 @@ export async function createManualEntry(formData: FormData): Promise<CreateEntry
     return { status: "error", message: "No se pudo crear la entrada." };
   }
 
-  revalidatePath("/");
+  revalidateEntryPages();
   return { status: "created", id: data.id };
 }
 
@@ -168,7 +164,7 @@ export async function updateEntry(
   }
   if (!data) return { status: "error", message: "La entrada ya no existe." };
 
-  revalidateEntry(id);
+  revalidateEntryPages(id);
   return { status: "saved", at: Date.now() };
 }
 
@@ -188,7 +184,7 @@ export async function deleteEntry(id: string) {
     await supabase.storage.from(COVER_BUCKET).remove(files.map((file) => `${folder}/${file.name}`));
   }
 
-  revalidatePath("/");
+  revalidateEntryPages();
   redirect("/");
 }
 
@@ -213,7 +209,7 @@ export async function setCustomCover(id: string, url: string): Promise<ActionSta
   if (error) return { status: "error", message: "No se pudo guardar la portada." };
 
   if (entry.cover_url !== url) await removeCustomCover(supabase, entry.cover_url);
-  revalidateEntry(id);
+  revalidateEntryPages(id);
   return { status: "saved", at: Date.now() };
 }
 
@@ -234,6 +230,6 @@ export async function resetCover(id: string): Promise<ActionState> {
   if (error) return { status: "error", message: "No se pudo restaurar la portada." };
 
   await removeCustomCover(supabase, entry.cover_url);
-  revalidateEntry(id);
+  revalidateEntryPages(id);
   return { status: "saved", at: Date.now() };
 }

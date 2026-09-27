@@ -1,0 +1,142 @@
+import { notFound } from "next/navigation";
+
+import { FavoriteButton } from "@/components/collection/favorite-button";
+import { PrioritySelect } from "@/components/collection/priority-select";
+import { RewatchControl } from "@/components/collection/rewatch-control";
+import { TagEditor } from "@/components/collection/tag-editor";
+import { requireUser } from "@/lib/auth/session";
+import { MEDIA_TYPE_LABELS } from "@/lib/constants";
+import { getEntry, getEntryTags, getRewatches, listTags, type Entry } from "@/lib/db/entries";
+import { parseEntryMetadata } from "@/lib/entry-metadata";
+import { getSupabaseEnv } from "@/lib/env";
+import { progressStateFromRow } from "@/lib/progress";
+import { isOwnCoverUrl } from "@/lib/storage/covers";
+
+import { CoverEditor } from "./cover-editor";
+import { CoverImage } from "./cover-image";
+import { DeleteEntryButton } from "./delete-entry-button";
+import { EntryForm } from "./entry-form";
+import { ProgressControl } from "./progress-control";
+
+const PROVIDER_CREDITS: Record<Entry["provider"], string | null> = {
+  tmdb: "Datos de TMDB",
+  anilist: "Datos de AniList",
+  google_books: "Datos de Google Books",
+  open_library: "Datos de Open Library",
+  manual: null,
+};
+
+function formatMinutes(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (!hours) return `${rest} min`;
+  return rest ? `${hours} h ${rest} min` : `${hours} h`;
+}
+
+function plural(count: number, singular: string, pluralForm: string) {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
+/** Línea de datos según el tipo: año, duración, temporadas, páginas… */
+function entryFacts(entry: Entry): string[] {
+  const seasons = parseEntryMetadata(entry.metadata).seasons;
+  const facts: (string | number | null)[] = [
+    MEDIA_TYPE_LABELS[entry.media_type],
+    entry.release_year,
+  ];
+
+  if (entry.media_type === "movie" && entry.runtime_minutes) {
+    facts.push(formatMinutes(entry.runtime_minutes));
+  }
+  if (entry.media_type === "tv" && seasons?.length) {
+    facts.push(plural(seasons.length, "temporada", "temporadas"));
+  }
+  if ((entry.media_type === "tv" || entry.media_type === "anime") && entry.total_episodes) {
+    facts.push(plural(entry.total_episodes, "episodio", "episodios"));
+  }
+  if (entry.episode_minutes) facts.push(`${entry.episode_minutes} min/ep.`);
+  if (entry.media_type === "book" && entry.total_pages) {
+    facts.push(plural(entry.total_pages, "página", "páginas"));
+  }
+  return facts.filter((fact): fact is string | number => Boolean(fact)).map(String);
+}
+
+/** Carga la entrada o responde 404. Compartido por la página y el modal. */
+export async function loadEntry(id: string) {
+  const user = await requireUser();
+  const entry = await getEntry(user.id, id);
+  if (!entry) notFound();
+  return { user, entry };
+}
+
+/** Contenido completo de la ficha (página /entry/[id] y modal sobre el catálogo). */
+export async function EntryDetail({ id }: { id: string }) {
+  const { user, entry } = await loadEntry(id);
+  const [tags, allTags, rewatches] = await Promise.all([
+    getEntryTags(user.id, entry.id),
+    listTags(user.id),
+    getRewatches(user.id, entry.id),
+  ]);
+
+  const providerCover = parseEntryMetadata(entry.metadata).provider_cover_url;
+  const isCustomCover =
+    entry.cover_url !== null && isOwnCoverUrl(entry.cover_url, getSupabaseEnv().url, user.id);
+  const credit = PROVIDER_CREDITS[entry.provider];
+
+  return (
+    <div className="grid gap-8 md:grid-cols-[240px_1fr]">
+      <aside className="flex flex-col gap-3">
+        <div className="mx-auto w-44 md:w-full">
+          <CoverImage
+            src={entry.cover_url}
+            alt={entry.title}
+            sizes="(min-width: 768px) 240px, 176px"
+            preload
+          />
+        </div>
+        <CoverEditor
+          entryId={entry.id}
+          userId={user.id}
+          isCustom={isCustomCover}
+          hasProviderCover={Boolean(providerCover)}
+        />
+        <FavoriteButton entryId={entry.id} isFavorite={entry.is_favorite} variant="inline" />
+        {entry.status === "planned" && (
+          <PrioritySelect entryId={entry.id} priority={entry.priority} />
+        )}
+      </aside>
+
+      <div className="flex min-w-0 flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold">{entry.title}</h1>
+          {entry.original_title && <p className="text-sm text-muted">{entry.original_title}</p>}
+          {entry.authors.length > 0 && <p className="text-sm">{entry.authors.join(", ")}</p>}
+          <p className="text-sm text-muted">{entryFacts(entry).join(" · ")}</p>
+          {entry.synopsis && (
+            <p className="mt-2 text-sm leading-relaxed whitespace-pre-line">{entry.synopsis}</p>
+          )}
+          {credit && <p className="text-xs text-muted">{credit}</p>}
+        </header>
+
+        {entry.media_type !== "movie" && (
+          <ProgressControl
+            entryId={entry.id}
+            status={entry.status}
+            progress={progressStateFromRow(entry)}
+            episodeMinutes={entry.episode_minutes}
+          />
+        )}
+
+        <EntryForm entry={entry} />
+
+        <TagEditor entryId={entry.id} tags={tags} allTags={allTags} />
+
+        <RewatchControl entryId={entry.id} mediaType={entry.media_type} rewatches={rewatches} />
+
+        <div className="border-t border-border pt-4">
+          <DeleteEntryButton entryId={entry.id} title={entry.title} />
+        </div>
+      </div>
+    </div>
+  );
+}
