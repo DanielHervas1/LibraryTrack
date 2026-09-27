@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { catalogHref, type CatalogFilters as Filters } from "@/lib/catalog-url";
+import { chipClass } from "@/components/ui/styles";
 import {
   MEDIA_TYPES,
   MEDIA_TYPE_PLURAL_LABELS,
@@ -24,11 +25,7 @@ function Chip({
       href={href}
       aria-current={active ? "page" : undefined}
       scroll={false}
-      className={`shrink-0 rounded-full border px-3 py-1 text-sm transition ${
-        active
-          ? "border-accent bg-accent text-accent-foreground"
-          : "border-border text-muted hover:text-foreground"
-      }`}
+      className={chipClass(active)}
     >
       {children}
     </Link>

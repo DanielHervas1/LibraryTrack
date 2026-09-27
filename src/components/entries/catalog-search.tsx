@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useState, useTransition } from "react";
 
 import { catalogHref, type CatalogFilters } from "@/lib/catalog-url";
+import { inputClass, selectClass } from "@/components/ui/styles";
 
 type CatalogSearchProps = {
   filters: CatalogFilters;
@@ -43,8 +44,6 @@ export function CatalogSearch({
     return () => clearTimeout(timer);
   }, [query]);
 
-  const selectClass = "rounded-lg border border-border bg-background px-2 py-1.5 text-sm";
-
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center" aria-busy={pending}>
       <input
@@ -53,7 +52,7 @@ export function CatalogSearch({
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Buscar en mi catálogo…"
         aria-label="Buscar en mi catálogo"
-        className="w-full rounded-lg border border-border bg-background px-3 py-2 outline-none focus:ring-2 focus:ring-accent sm:flex-1"
+        className={`${inputClass} sm:flex-1`}
       />
       <div className="flex flex-wrap items-center gap-2">
         <select
@@ -90,7 +89,7 @@ export function CatalogSearch({
               type="checkbox"
               checked={Boolean(filters.favorites)}
               onChange={(event) => navigate({ favorites: event.target.checked || undefined })}
-              className="accent-[var(--accent)]"
+              className="accent-accent"
             />
             Solo favoritos
           </label>

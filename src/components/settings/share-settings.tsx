@@ -125,7 +125,7 @@ export function ShareSettings({
             type="checkbox"
             name="share_hide_reviews"
             defaultChecked={hideReviews}
-            className="accent-[var(--accent)]"
+            className="accent-accent"
           />
           Ocultar mis opiniones (solo se verán títulos, notas y estados)
         </label>

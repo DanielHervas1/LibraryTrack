@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { FavoriteButton } from "@/components/collection/favorite-button";
+import { ScoreBadge } from "@/components/ui/cover-badges";
 import { MEDIA_TYPE_LABELS, statusLabel } from "@/lib/constants";
 import type { EntryCardData } from "@/lib/db/entries";
 import { describeProgress } from "@/lib/progress";
@@ -49,11 +50,7 @@ export function EntryCard({ entry, preload, showType, extra }: EntryCardProps) {
             preload={preload}
             className="transition group-focus-within:ring-2 group-focus-within:ring-accent group-hover:opacity-90"
           />
-          {entry.score !== null && (
-            <span className="absolute top-2 right-2 rounded-md bg-black/75 px-1.5 py-0.5 text-xs font-semibold text-white">
-              {entry.score}
-            </span>
-          )}
+          {entry.score !== null && <ScoreBadge score={entry.score} />}
         </div>
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{entry.title}</p>

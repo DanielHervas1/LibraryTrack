@@ -45,7 +45,7 @@ export function FavoriteButton({ entryId, isFavorite, variant = "overlay" }: Fav
         type="button"
         onClick={toggle}
         aria-pressed={optimistic}
-        className={`flex items-center gap-1.5 text-sm ${optimistic ? "text-rose-500" : "text-muted hover:text-foreground"}`}
+        className={`flex items-center gap-1.5 text-sm ${optimistic ? "text-favorite" : "text-muted hover:text-foreground"}`}
       >
         <HeartIcon filled={optimistic} />
         {optimistic ? "Favorito" : "Marcar favorito"}
@@ -60,8 +60,8 @@ export function FavoriteButton({ entryId, isFavorite, variant = "overlay" }: Fav
       aria-pressed={optimistic}
       aria-label={label}
       title={label}
-      className={`flex size-8 items-center justify-center rounded-full bg-black/60 backdrop-blur transition ${
-        optimistic ? "text-rose-400" : "text-white/80 hover:text-white"
+      className={`flex size-8 items-center justify-center rounded-full bg-overlay backdrop-blur transition ${
+        optimistic ? "text-favorite-on-overlay" : "text-on-overlay/80 hover:text-on-overlay"
       }`}
     >
       <HeartIcon filled={optimistic} />

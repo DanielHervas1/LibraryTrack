@@ -1,48 +1,100 @@
 @import "tailwindcss";
 
+/*
+ * PALETA — única fuente de colores de la app.
+ * Los componentes usan SOLO estos tokens (bg-surface, text-muted, border-control…),
+ * nunca colores sueltos. El tema lo decide <html data-theme="light|dark">, que pone el
+ * script de <head> antes del primer pintado (ver src/lib/theme/theme.ts).
+ *
+ * Contraste WCAG AA comprobado en src/lib/theme/palette.test.ts (lee este archivo):
+ * texto ≥ 4,5:1 y bordes de controles / marcas de gráficas ≥ 3:1. Si cambias un color,
+ * `npm test` te dirá si rompe el contraste.
+ */
+
+/* Tema claro (por defecto) */
 :root {
-  --background: #ffffff;
-  --foreground: #16161d;
-  --surface: #f4f4f6;
-  --border: #e4e4e9;
-  --muted: #6b6b76;
-  --accent: #4f46e5;
-  --accent-foreground: #ffffff;
-  --danger: #dc2626;
-  /* Barras de las gráficas (validado: banda de luminosidad y contraste 3:1 sobre la superficie). */
-  --chart: #4f46e5;
+  color-scheme: light;
+
+  --background: #ffffff; /* fondo de la página */
+  --surface: #f4f4f6; /* tarjetas, paneles, chips */
+  --foreground: #16161d; /* texto principal */
+  --muted: #6b6b76; /* texto secundario */
+  --border: #e4e4e9; /* separadores y bordes decorativos */
+  --control-border: #85858f; /* bordes de inputs, selects y casillas (≥ 3:1) */
+  --accent: #4f46e5; /* acción principal, enlaces, foco */
+  --accent-foreground: #ffffff; /* texto sobre el acento */
+  --danger: #b91c1c; /* errores y acciones destructivas */
+  --success: #15803d; /* confirmaciones */
+  --favorite: #be123c; /* corazón de favoritos */
+  --chart: #4f46e5; /* barras de las gráficas (validado con la skill dataviz) */
+  --overlay: rgb(0 0 0 / 0.75); /* insignias sobre portadas (igual en ambos temas) */
+  --on-overlay: #ffffff;
+  --favorite-on-overlay: #fb7185;
+  --backdrop: rgb(0 0 0 / 0.5); /* fondo detrás del modal */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0b0f;
-    --foreground: #ececf1;
-    --surface: #17171d;
-    --border: #2a2a33;
-    --muted: #9a9aa6;
-    --accent: #818cf8;
-    --accent-foreground: #0b0b0f;
-    --danger: #f87171;
-    --chart: #7479f2;
-  }
+/* Tema oscuro */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #0b0b0f;
+  --surface: #17171d;
+  --foreground: #ececf1;
+  --muted: #9a9aa6;
+  --border: #2a2a33;
+  --control-border: #71717e;
+  --accent: #818cf8;
+  --accent-foreground: #0b0b0f;
+  --danger: #f87171;
+  --success: #4ade80;
+  --favorite: #fb7185;
+  --chart: #7479f2;
+  --backdrop: rgb(0 0 0 / 0.7);
 }
 
+/* Utilidades de Tailwind a partir de los tokens (bg-*, text-*, border-*, accent-*…). */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-border: var(--border);
+  --color-control: var(--control-border);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-favorite: var(--favorite);
   --color-chart: var(--chart);
+  --color-overlay: var(--overlay);
+  --color-on-overlay: var(--on-overlay);
+  --color-favorite-on-overlay: var(--favorite-on-overlay);
+  --color-backdrop: var(--backdrop);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
+
+/* `dark:` sigue al selector de tema (no solo al sistema operativo). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/*
+ * Transición al cambiar de tema: la clase .theme-transition solo está puesta ~200 ms
+ * durante el cambio (src/lib/theme/client.ts), así no interfiere con otras animaciones.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  :root.theme-transition,
+  :root.theme-transition *,
+  :root.theme-transition *::before,
+  :root.theme-transition *::after {
+    transition-property:
+      color, background-color, border-color, outline-color, fill, stroke !important;
+    transition-duration: 180ms !important;
+    transition-timing-function: ease !important;
+  }
 }
 
 /* Filas desplazables en horizontal (chips de filtros) sin barra de scroll visible. */

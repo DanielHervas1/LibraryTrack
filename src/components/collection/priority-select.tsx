@@ -4,6 +4,7 @@ import { useOptimistic, useTransition } from "react";
 
 import { setPriority } from "@/lib/actions/collection";
 import { PRIORITY_LABELS } from "@/lib/constants";
+import { selectClass } from "@/components/ui/styles";
 
 type PrioritySelectProps = {
   entryId: string;
@@ -28,7 +29,7 @@ export function PrioritySelect({ entryId, priority, className = "" }: PrioritySe
           await setPriority(entryId, value);
         });
       }}
-      className={`rounded-lg border border-border bg-background px-2 py-1 text-sm ${className}`}
+      className={`${selectClass} ${className}`}
     >
       <option value="">Sin prioridad</option>
       {Object.entries(PRIORITY_LABELS).map(([value, label]) => (

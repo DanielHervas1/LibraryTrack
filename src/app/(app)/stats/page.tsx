@@ -13,6 +13,7 @@ import {
 import { getProfile } from "@/lib/db/profile";
 import { getStatsEntries } from "@/lib/db/stats";
 import { computeStats, formatHours, yearsWithActivity, type CountItem } from "@/lib/stats";
+import { chipClass } from "@/components/ui/styles";
 
 export const metadata: Metadata = {
   title: "Estadísticas",
@@ -56,13 +57,6 @@ export default async function StatsPage(props: PageProps<"/stats">) {
   const today = todayISO();
   const stats = computeStats(entries, { minutesPerPage: profile.minutesPerPage, year, today });
 
-  const chip = (active: boolean) =>
-    `shrink-0 rounded-full border px-3 py-1 text-sm transition ${
-      active
-        ? "border-accent bg-accent text-accent-foreground"
-        : "border-border text-muted hover:text-foreground"
-    }`;
-
   if (entries.length === 0) {
     return (
       <section className="flex flex-col items-center gap-3 py-20 text-center">
@@ -87,7 +81,11 @@ export default async function StatsPage(props: PageProps<"/stats">) {
             aria-label="Elegir año"
             className="-mx-4 no-scrollbar flex gap-2 overflow-x-auto px-4"
           >
-            <Link href="/stats" aria-current={!year ? "page" : undefined} className={chip(!year)}>
+            <Link
+              href="/stats"
+              aria-current={!year ? "page" : undefined}
+              className={chipClass(!year)}
+            >
               Todo
             </Link>
             {years.map((y) => (
@@ -95,7 +93,7 @@ export default async function StatsPage(props: PageProps<"/stats">) {
                 key={y}
                 href={`/stats?year=${y}`}
                 aria-current={year === y ? "page" : undefined}
-                className={chip(year === y)}
+                className={chipClass(year === y)}
               >
                 {y}
               </Link>

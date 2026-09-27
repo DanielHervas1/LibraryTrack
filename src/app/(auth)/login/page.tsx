@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { safeNextPath } from "@/lib/auth/redirect";
 import { getCurrentUser } from "@/lib/auth/session";
 
@@ -22,17 +23,22 @@ export default async function LoginPage(props: PageProps<"/login">) {
   if (await getCurrentUser()) redirect(next ?? "/");
 
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12">
-      <div>
-        <h1 className="text-2xl font-semibold">LibraryTrack</h1>
-        <p className="mt-1 text-sm text-muted">Entra con tu email y tu contraseña.</p>
+    <>
+      <div className="flex justify-end px-4 pt-3">
+        <ThemeToggle />
       </div>
-      {error && (
-        <p className="rounded-lg bg-danger/10 p-3 text-sm text-danger" role="alert">
-          {error}
-        </p>
-      )}
-      <LoginForm next={next} />
-    </main>
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12">
+        <div>
+          <h1 className="text-2xl font-semibold">LibraryTrack</h1>
+          <p className="mt-1 text-sm text-muted">Entra con tu email y tu contraseña.</p>
+        </div>
+        {error && (
+          <p className="rounded-lg bg-danger/10 p-3 text-sm text-danger" role="alert">
+            {error}
+          </p>
+        )}
+        <LoginForm next={next} />
+      </main>
+    </>
   );
 }

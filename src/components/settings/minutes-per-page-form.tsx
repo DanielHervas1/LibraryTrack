@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-import { secondaryButtonClass } from "@/components/ui/styles";
+import { compactInputClass, secondaryButtonClass } from "@/components/ui/styles";
 import type { ActionState } from "@/lib/actions/entries";
 import { setMinutesPerPage } from "@/lib/actions/profile";
 
@@ -23,7 +23,7 @@ export function MinutesPerPageForm({ value }: { value: number }) {
           max="10"
           inputMode="decimal"
           defaultValue={value}
-          className="w-20 rounded-lg border border-border bg-background px-2 py-1.5"
+          className={`w-20 ${compactInputClass}`}
         />
         minutos por página
       </label>

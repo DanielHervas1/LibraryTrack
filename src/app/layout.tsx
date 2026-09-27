@@ -4,6 +4,8 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 
 import { RegisterServiceWorker } from "@/components/layout/register-service-worker";
+import { ThemeSync } from "@/components/theme/theme-sync";
+import { THEME_BACKGROUNDS, themeInitScript } from "@/lib/theme/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,17 +28,30 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Valor inicial según el sistema; ThemeSync lo ajusta si el usuario fija un tema.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0b0f" },
+    { media: "(prefers-color-scheme: light)", color: THEME_BACKGROUNDS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_BACKGROUNDS.dark },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${geistSans.variable} h-full antialiased`}>
+    // El script de <head> pone data-theme antes de hidratar: suppressHydrationWarning
+    // evita que React lo trate como error (solo afecta a los atributos de <html>).
+    <html
+      lang="es"
+      data-theme="light"
+      className={`${geistSans.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Aplica el tema guardado antes del primer pintado: sin parpadeo al cargar. */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="flex min-h-full flex-col font-sans">
         {children}
+        <ThemeSync />
         <RegisterServiceWorker />
       </body>
     </html>

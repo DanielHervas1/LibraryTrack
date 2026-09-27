@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useId, useState, useTransition } from "react";
 
-import { inputClass, secondaryButtonClass } from "@/components/ui/styles";
+import { secondaryButtonClass, smallInputClass } from "@/components/ui/styles";
 import { addTag, removeTag } from "@/lib/actions/collection";
 import type { Tag } from "@/lib/db/entries";
 import { TAG_MAX_LENGTH } from "@/lib/validation/tag";
@@ -84,7 +84,7 @@ export function TagEditor({ entryId, tags, allTags }: TagEditorProps) {
           maxLength={TAG_MAX_LENGTH}
           placeholder="nostalgia, para ver con amigos…"
           aria-label="Nuevo tag"
-          className={`${inputClass} py-1.5 text-sm`}
+          className={smallInputClass}
         />
         <datalist id={listId}>
           {suggestions.map((tag) => (

@@ -8,6 +8,7 @@ import { useFormStatus } from "react-dom";
 import type { SearchResponse } from "@/app/api/search/route";
 import { addFromProvider } from "@/lib/actions/entries";
 import { MEDIA_TYPES, MEDIA_TYPE_PLURAL_LABELS, type MediaType } from "@/lib/constants";
+import { chipClass, inputClass } from "@/components/ui/styles";
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -96,11 +97,7 @@ export function MediaSearch({ initialType }: { initialType: MediaType }) {
               setType(value);
               setState({ status: "idle" });
             }}
-            className={`shrink-0 rounded-full border px-3 py-1 text-sm transition ${
-              type === value
-                ? "border-accent bg-accent text-accent-foreground"
-                : "border-border text-muted hover:text-foreground"
-            }`}
+            className={chipClass(type === value)}
           >
             {MEDIA_TYPE_PLURAL_LABELS[value]}
           </button>
@@ -114,7 +111,7 @@ export function MediaSearch({ initialType }: { initialType: MediaType }) {
         placeholder={PLACEHOLDERS[type]}
         aria-label={PLACEHOLDERS[type]}
         autoFocus
-        className="w-full rounded-lg border border-border bg-background px-3 py-2.5 outline-none focus:ring-2 focus:ring-accent"
+        className={inputClass}
       />
       <p className="-mt-2 text-xs text-muted">Datos de {SOURCES[type]}.</p>
 

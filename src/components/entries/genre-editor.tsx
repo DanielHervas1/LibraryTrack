@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { secondaryButtonClass, smallInputClass } from "@/components/ui/styles";
 
 /** Editor de géneros como etiquetas. Envía un input oculto "genres" por cada uno. */
 export function GenreEditor({ initialGenres }: { initialGenres: string[] }) {
@@ -54,13 +55,9 @@ export function GenreEditor({ initialGenres }: { initialGenres: string[] }) {
           placeholder="Añadir género"
           aria-label="Nuevo género"
           maxLength={60}
-          className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+          className={`min-w-0 flex-1 ${smallInputClass}`}
         />
-        <button
-          type="button"
-          onClick={addDraft}
-          className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface"
-        >
+        <button type="button" onClick={addDraft} className={secondaryButtonClass}>
           Añadir
         </button>
       </div>

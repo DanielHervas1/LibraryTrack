@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { secondaryButtonClass } from "@/components/ui/styles";
+import { compactInputClass, secondaryButtonClass } from "@/components/ui/styles";
 import { addRewatch, removeRewatch } from "@/lib/actions/collection";
 import type { MediaType } from "@/lib/constants";
 import type { Rewatch } from "@/lib/db/entries";
@@ -62,7 +62,7 @@ export function RewatchControl({ entryId, mediaType, rewatches }: RewatchControl
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+            className={compactInputClass}
           />
         </label>
       </div>

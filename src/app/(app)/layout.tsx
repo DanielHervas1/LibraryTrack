@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DesktopNav, MobileHeaderNav, MobileNav } from "@/components/layout/nav-links";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { requireUser } from "@/lib/auth/session";
 
 /** Layout de la app autenticada. `modal` es el slot @modal (ficha sobre el catálogo). */
@@ -16,8 +17,11 @@ export default async function AppLayout({ children, modal }: LayoutProps<"/">) {
             <img src="/icon.svg" alt="" className="size-6" />
             LibraryTrack
           </Link>
-          <DesktopNav />
-          <MobileHeaderNav />
+          <div className="flex items-center gap-1 md:gap-4">
+            <DesktopNav />
+            <MobileHeaderNav />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-28 md:pb-10">{children}</main>

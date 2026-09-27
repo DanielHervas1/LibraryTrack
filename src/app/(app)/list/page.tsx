@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/session";
 import { MEDIA_TYPES, MEDIA_TYPE_PLURAL_LABELS } from "@/lib/constants";
 import { listPlanned } from "@/lib/db/entries";
 import { parseMediaType } from "@/lib/search-params";
+import { chipClass } from "@/components/ui/styles";
 
 export const metadata: Metadata = {
   title: "Mi lista",
@@ -43,11 +44,7 @@ export default async function ListPage(props: PageProps<"/list">) {
               href={type ? `/list?type=${type}` : "/list"}
               aria-current={active ? "page" : undefined}
               scroll={false}
-              className={`shrink-0 rounded-full border px-3 py-1 text-sm transition ${
-                active
-                  ? "border-accent bg-accent text-accent-foreground"
-                  : "border-border text-muted hover:text-foreground"
-              }`}
+              className={chipClass(active)}
             >
               {type ? MEDIA_TYPE_PLURAL_LABELS[type] : "Todo"}
             </Link>

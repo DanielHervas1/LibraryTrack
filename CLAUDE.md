@@ -185,6 +185,19 @@ ALLOWED_EMAIL=                   # única cuenta autorizada a iniciar sesión
 - Los textos de la UI en español, centralizados en `lib/constants.ts` cuando se repiten (etiquetas de estados y tipos). Las etiquetas dependen del tipo: "Viendo" → "Leyendo" en libros.
 - Diseño **mobile-first**: la app se usará sobre todo en el móvil como PWA.
 
+## Tema claro / oscuro y paleta
+
+- **Una sola fuente de colores:** los tokens de [globals.css](src/app/globals.css) (`--background`, `--surface`, `--foreground`, `--muted`, `--border`, `--control-border`, `--accent`, `--danger`, `--success`, `--favorite`, `--chart`, `--overlay`…) en `:root` (claro) y `:root[data-theme="dark"]` (oscuro). **Nunca uses colores sueltos** (`text-white`, `bg-black/60`, `rose-500`, hex…) en componentes: añade o usa un token.
+- **Contraste AA automatizado:** [palette.test.ts](src/lib/theme/palette.test.ts) lee globals.css y comprueba texto ≥ 4,5:1 y bordes de controles, marcas y foco ≥ 3:1 en ambos temas. Si cambias o añades un color, añade su par al test.
+- `--border` es decorativo (separadores y tarjetas). Los campos de formulario usan `border-control` (≥ 3:1, WCAG 1.4.11). Las clases de campos, botones y chips están centralizadas en [styles.ts](src/components/ui/styles.ts); no las dupliques.
+- Las insignias sobre portadas usan `bg-overlay`/`text-on-overlay` (oscuras en ambos temas, legibles sobre cualquier portada): [cover-badges.tsx](src/components/ui/cover-badges.tsx).
+- **Sin parpadeo:** `themeInitScript` ([theme.ts](src/lib/theme/theme.ts)) va en línea en `<head>` del layout raíz y pone `data-theme` y `data-theme-choice` en `<html>` antes del primer pintado. `<html>` lleva `suppressHydrationWarning`, que es el patrón de la guía de Next 16 "preventing-flash-before-hydration".
+- La elección (`system` | `light` | `dark`) se guarda en `localStorage["librarytrack-theme"]`. Selector: [theme-toggle.tsx](src/components/theme/theme-toggle.tsx), en la cabecera de la app, el login, `/share` y `/offline`. [theme-sync.tsx](src/components/theme/theme-sync.tsx), en el layout raíz, sigue los cambios del sistema y de otras pestañas y ajusta el `meta theme-color`.
+- **Transición de 180 ms:** clase `.theme-transition` puesta solo durante el cambio. Respeta `prefers-reduced-motion`.
+- `color-scheme` en cada tema adapta los controles nativos (fecha, desplegable, casilla, scroll). No hay librerías de UI externas.
+- La variante `dark:` de Tailwind está atada a `data-theme` (no a la media query), por si se necesita puntualmente. Preferible usar tokens.
+- Para probar en un navegador real se usó `puppeteer-core` con el Chrome instalado (fuera del proyecto): permite fijar `prefers-color-scheme`, `localStorage` y medir el primer fotograma.
+
 ## Diario y estadísticas
 
 - **Diario** (`/diary`): inicio y fin salen de `entries.started_at`/`finished_at` (no se duplican en `activity_log`). `activity_log` guarda solo los avances (lo registra `saveProgress` en `lib/actions/progress.ts` con `progressDelta`) y los rewatches. Los kinds `started`/`finished` del enum no se usan.

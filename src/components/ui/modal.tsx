@@ -33,7 +33,7 @@ export function Modal({ title, children }: { title: string; children: React.Reac
         // Clic en el fondo (fuera del contenido) cierra.
         if (event.target === dialogRef.current) close();
       }}
-      className="m-auto h-full max-h-none w-full max-w-none bg-transparent p-0 backdrop:bg-black/60 sm:h-auto sm:max-h-[90vh] sm:max-w-4xl"
+      className="m-auto h-full max-h-none w-full max-w-none bg-transparent p-0 backdrop:bg-backdrop sm:h-auto sm:max-h-[90vh] sm:max-w-4xl"
     >
       <div className="relative h-full overflow-y-auto bg-background p-4 pt-14 text-foreground sm:max-h-[90vh] sm:rounded-2xl sm:p-6 sm:pt-14">
         <button

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { CoverImage } from "@/components/entries/cover-image";
-import { primaryButtonClass } from "@/components/ui/styles";
+import { primaryButtonClass, selectClass } from "@/components/ui/styles";
 import {
   MEDIA_TYPES,
   MEDIA_TYPE_LABELS,
@@ -49,7 +49,6 @@ export function RandomPicker({ entries }: { entries: Candidate[] }) {
     setEmpty(next === null);
   }
 
-  const selectClass = "rounded-lg border border-border bg-background px-2 py-1.5 text-sm";
   const minutes = picked ? sessionMinutes(picked) : null;
 
   return (

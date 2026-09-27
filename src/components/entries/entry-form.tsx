@@ -100,7 +100,7 @@ export function EntryForm({ entry }: { entry: Entry }) {
           type="checkbox"
           name="is_private"
           defaultChecked={entry.is_private}
-          className="mt-0.5 accent-[var(--accent)]"
+          className="mt-0.5 accent-accent"
         />
         <span>
           Privada
