@@ -1,0 +1,4 @@
+# Finales de línea LF en el repo y en disco (Prettier usa LF; evita cambios fantasma en Windows).
+* text=auto eol=lf
+*.png binary
+*.ico binary
