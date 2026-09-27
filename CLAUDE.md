@@ -69,7 +69,7 @@ Next.js (App Router) · React · TypeScript · Tailwind CSS · Supabase (Postgre
 ```
 src/
   app/
-    (auth)/login/            # login (magic link / GitHub)
+    (auth)/login/            # login por código del correo (o enlace)
     (app)/                   # rutas protegidas (layout con navegación)
       page.tsx               # catálogo en grid (filtros por tipo, estado, tag…)
       entry/[id]/page.tsx    # detalle (página completa)
@@ -215,7 +215,10 @@ Antes de dar una tarea por terminada, ejecuta `lint`, `typecheck`, `test` y `bui
 - `npx supabase db query --linked "SQL"` ejecuta SQL contra el proyecto remoto como `postgres`, sin RLS. Para probar escrituras, envuélvelas en `begin; … rollback;`.
 - `npx supabase db advisors --linked` revisa seguridad y rendimiento (RLS, índices…). Pásalo tras cada migración.
 - Después de cada migración, ejecuta `npm run db:types`.
-- El login es por magic link, así que no se puede probar una sesión con curl. Los flujos autenticados los prueba el usuario en el navegador.
+- **Login:** `signInWithOtp` envía un correo con un **código** (se escribe en la app → `verifyOtp({ email, token, type: "email" })`) y un enlace. El código es el método principal porque el enlace PKCE solo funciona en el navegador donde se pidió, y en iOS una PWA instalada no comparte sesión con Safari. La plantilla "Magic Link" de Supabase (Authentication → Emails) tiene que incluir `{{ .Token }}`; el enlace usa `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`, que funciona en cualquier navegador.
+- El servicio de correo por defecto de Supabase tiene un **límite muy bajo** (error 429 `over_email_send_rate_limit`). Para más margen, configura un SMTP propio (p. ej. Resend) en Authentication → SMTP.
+- No se puede probar una sesión con curl. Los flujos autenticados los prueba el usuario en el navegador.
+- **Producción:** https://library-track.vercel.app (Vercel, conectado a GitHub: cada push a `main` despliega solo). Las variables de entorno se configuran en el dashboard de Vercel. En Supabase, el Site URL y las Redirect URLs incluyen esa URL.
 
 ## Cosas a tener en cuenta
 
